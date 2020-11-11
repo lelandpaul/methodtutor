@@ -41,6 +41,18 @@
 
   import { onMount } from 'svelte';
 
+  /* Get path */
+  async function getPath(bell){
+      const promise = await fetch('./get_line/' + bell)
+      const text = await promise.json();
+      if (promise.ok) {
+          return text;
+      } else {
+          throw new Error(text);
+      }
+  }
+
+
   let cover;
   let canvas;
   let place_width;
@@ -50,9 +62,11 @@
   let drawSegment;
   let drawTreble;
   let resetAll;
+  let input_dir;
 
 
   var stage = 8;
+  var cur_bell = stage;
   var rows = 32;
   var treble_pos = 1
   var cur_row = 0;
@@ -61,17 +75,12 @@
   var line_color = '#05a';
   var vertical_offset = 20;
 
-  var correct_line = [-1, 1, -1, -1,
-                      -1, 1, -1, -1,
-                      -1, 1, -1, -1,
-                      -1, 0, 1, 1,
-                      1, -1, 1, 1,
-                      1, -1, 1, 1,
-                      1, -1, 1, 0,
-                      -1, 1, -1, -1]
-  var input_dir;
-
-
+  let correct_line;
+  $: {
+    getPath(cur_bell).then((result)=>{
+    correct_line = result;
+    });
+  }
 
 
   function calcH(place){
@@ -149,7 +158,7 @@
 
     resetAll = function() {
       cur_row = 0;
-      cur_pos = 8;
+      cur_pos = cur_bell;
       treble_pos = 1;
       drawBells();
       drawGrid();
@@ -171,20 +180,33 @@
 
   function keyDownHandler(e) {
     if (debounce) { return }
+    switch(e.key) {
+      case "ArrowLeft":
+        input_dir = -1;
+        break;
+      case "ArrowDown":
+        input_dir = 0;
+        break;
+      case "ArrowRight":
+        input_dir = 1;
+        break;
+      case "Enter":
+        resetAll();
+        return;
+        break;
+      case "2":
+      case "3":
+      case "4":
+      case "5":
+      case "6":
+      case "7":
+      case "8":
+      case "9":
+        cur_bell = parseInt(e.key);
+        resetAll();
+        return;
+    }
     if (cur_row >= 32) { return }
-    if (e.keyCode == 13) {
-      resetAll();
-      return;
-    }
-    if (e.keyCode == 37 && cur_pos != 1) {
-      input_dir = -1;
-    }
-    if (e.keyCode == 39 && cur_pos != stage) {
-      input_dir = 1;
-    }
-    if (e.keyCode == 40){
-      input_dir = 0;
-    }
     if (input_dir == correct_line[cur_row]){
       drawNextSeg(input_dir);
     }
