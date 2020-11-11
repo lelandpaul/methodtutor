@@ -1,6 +1,8 @@
 <svelte:window on:keydown={keyDownHandler} on:keyup={keyUpHandler}/>
 
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 900">
+<svg xmlns="http://www.w3.org/2000/svg" 
+     style="width:{canvas_width}; height: {canvas_height};"
+     viewBox="0 0 {canvas_width} {canvas_height}">
   {#each Array($stage) as _, i}
     <line x1="{calcH(i+0.5)}" y1="-10" 
           x2="{calcH(i+0.5)}" y2="910" 
@@ -44,10 +46,7 @@
 <style>
 
   svg {
-    width: 400px;
-    height: 900px;
     background: #f5f5f5; 
-    margin: 1em;
     border-style: solid;
     border-width: 3px;
     border-color: black;
@@ -64,7 +63,7 @@
 
   import { sineInOut } from 'svelte/easing';
   import { fade } from 'svelte/transition';
-  import { cur_blueline, cur_treble, stage, cur_bell } from './stores.js';
+  import { cur_blueline, cur_treble, stage, cur_bell, cards_so_far, card_complete } from './stores.js';
 
   let debounce = false;
   let input_dir;
@@ -99,6 +98,9 @@
     treble_pos = 1;
   }
 
+  $: $cards_so_far, resetAll();
+
+  $: $card_complete = cur_row >= 32;
 
   function keyDownHandler(e) {
     if (debounce) { return }
@@ -116,22 +118,11 @@
         resetAll();
         return;
         break;
-      case "2":
-      case "3":
-      case "4":
-      case "5":
-      case "6":
-      case "7":
-      case "8":
-      case "9":
-        cur_bell.set(parseInt(e.key));
-        resetAll();
-        return;
       default:
         return;
         break;
     }
-    if (cur_row >= 32) { return }
+    if ($card_complete) { return };
     if ($cur_blueline[cur_row] + input_dir == $cur_blueline[cur_row+1]){
       cur_row += 1;
     } else {
