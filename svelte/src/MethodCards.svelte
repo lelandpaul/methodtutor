@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import MethodDisplay from './MethodDisplay.svelte';
   import Card from './Card.svelte';
-  import { cur_blueline, cur_treble, cur_bell, stage, cur_method, cards_so_far, card_complete } from './stores.js';
+  import { cur_blueline, cur_treble, cur_bell, stage, cur_method, cards_so_far, card_complete, lead_length } from './stores.js';
 
   let cur_card;
   let next_card;
@@ -17,6 +17,7 @@
       throw new Error(text);
     }
   }
+
 
   function keyDownHandler(e){
     switch(e.key) {
@@ -57,6 +58,7 @@
         cur_treble.set(cur_card.treble_path);
         stage.set(cur_card.stage);
         cur_method.set(cur_card.method);
+        lead_length.set(cur_card.lead_length);
       });
     }
 

@@ -23,4 +23,4 @@ deck.add_method('Cambridge Surprise Minor')
 
 @app.route("/get_next_card")
 def get_next_card():
-    return jsonify(deck.pick_card().card_dict)
+    return jsonify(deck.pick_card())

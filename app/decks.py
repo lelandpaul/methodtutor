@@ -20,7 +20,8 @@ class Card:
             'stage': self.method.stage,
             'treble_path': make_path(self.method.full_notation_list, 1),
             'place_bell': self.place_bell,
-            'blueline': make_path(self.method.full_notation_list, self.place_bell)
+            'blueline': make_path(self.method.full_notation_list, self.place_bell),
+            'lead_length': self.method.lengthoflead,
         }
         return card
 
@@ -32,6 +33,7 @@ class Card:
             'treble_path': [1],
             'place_bell': 1,
             'blueline': [1],
+            'lead_length': 32,
         }
         return card
 
@@ -56,6 +58,4 @@ class Deck:
             return Card.empty_card()
         card = choice(self.cards_remaining)
         card.show_next = date.today() + timedelta(days = 1)
-        return card
-
-
+        return card.card_dict

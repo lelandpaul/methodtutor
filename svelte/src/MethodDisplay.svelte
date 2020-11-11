@@ -4,8 +4,8 @@
      style="width:{canvas_width}; height: {canvas_height};"
      viewBox="0 0 {canvas_width} {canvas_height}">
   {#each Array($stage) as _, i}
-    <line x1="{calcH(i+0.5)}" y1="-10" 
-          x2="{calcH(i+0.5)}" y2="910" 
+    <line x1="{$stage, calcH(i+0.5)}" y1="-10" 
+          x2="{$stage, calcH(i+0.5)}" y2="910" 
           style="stroke:rgb(255,255,255); stroke-width: 4"/>
   {/each}
 
@@ -63,7 +63,7 @@
 
   import { sineInOut } from 'svelte/easing';
   import { fade } from 'svelte/transition';
-  import { cur_blueline, cur_treble, stage, cur_bell, cards_so_far, card_complete } from './stores.js';
+  import { cur_blueline, cur_treble, stage, cur_bell, cards_so_far, card_complete, lead_length } from './stores.js';
 
   let debounce = false;
   let input_dir;
@@ -71,7 +71,6 @@
   let canvas_height = 900;
   let mistake;
 
-  var rows = 32;
   var treble_pos = 1
   var cur_row = 0;
   var cur_pos = 8;
@@ -80,15 +79,13 @@
   var line_color = '#05a';
   var vertical_offset = 20;
 
-
-
   function calcH(place){
     var place_width = canvas_width / $stage;
     return (place - 0.5) * place_width;
   }
 
   function calcV(row) {
-    var row_height = (canvas_height - 2*vertical_offset) / rows;
+    var row_height = (canvas_height - 2*vertical_offset) / $lead_length;
     return row * row_height + vertical_offset
   }
 
@@ -99,8 +96,7 @@
   }
 
   $: $cards_so_far, resetAll();
-
-  $: $card_complete = cur_row >= 32;
+  $: $card_complete = cur_row >= $lead_length;
 
   function keyDownHandler(e) {
     if (debounce) { return }

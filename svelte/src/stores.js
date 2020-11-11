@@ -7,3 +7,4 @@ export const cur_bell = writable(8);
 export const cur_method = writable('');
 export const cards_so_far = writable(0);
 export const card_complete = writable(false);
+export const lead_length = writable(0);
