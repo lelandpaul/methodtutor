@@ -39,15 +39,16 @@ def decide_direction(cur_pn, place):
     return -1
 
 def make_path(pn, pos):
-    path = []
+    dirs = []
+    cur_pos = pos
     for p in pn:
-        direction = decide_direction(p, pos)
-        pos += direction
-        path.append(direction)
-    return path
-
+        direction = decide_direction(p, cur_pos)
+        cur_pos += direction
+        dirs.append(direction)
+    return [pos + sum(dirs[:i]) for i in range(len(dirs)+1)]
 
 
 @app.route("/get_line/<int:bell>")
 def get_line(bell):
-    return jsonify(make_path(cur_method.full_notation.split('.'), bell))
+    pn = cur_method.full_notation.split('.')
+    return jsonify(make_path(pn, bell))

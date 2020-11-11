@@ -1,37 +1,58 @@
 <svelte:window on:keydown={keyDownHandler} on:keyup={keyUpHandler}/>
 
-<canvas
-  id='base'
-  bind:this={canvas}
-  width={400}
-  height={900}
-></canvas>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 900">
+  {#each Array(stage) as _, i}
+    <line x1="{calcH(i+0.5)}" y1="-10" 
+          x2="{calcH(i+0.5)}" y2="910" 
+          style="stroke:rgb(255,255,255); stroke-width: 4"/>
+  {/each}
 
-<canvas
-  id='cover'
-  bind:this={cover}
-  width={400}
-  height={900}
-></canvas>
+  {#if mistake}
+    <rect x="0" y="-10" width="400" height="920" fill="rgba(0,0,0,0.5)"
+          transition:fade="{{duration: 100, easing: sineInOut}}"/>
+  {/if}
 
+  {#await blueline_promise then blueline}
+
+    <circle cx="{calcH(blueline[cur_row])}" cy="{calcV(cur_row)}"
+            r="8" fill="{line_color}" class="blueline"/>
+
+    {#each Array(cur_row) as _, i}
+      <line x1="{calcH(blueline[i])}" y1="{calcV(i)}"
+            x2="{calcH(blueline[i+1])}" y2="{calcV(i+1)}"
+            stroke="{line_color}" stroke-width="4" stroke-linecap="round" class="blueline"/>
+    {/each}
+
+  {/await}
+
+  {#await treble_promise then treble_line}
+
+    <circle cx="{calcH(treble_line[cur_row])}" cy="{calcV(cur_row)}"
+            r="5" fill="red" class="treble"/>
+
+      {#each Array(cur_row) as _, i}
+
+        <line x1="{calcH(treble_line[i])}" y1="{calcV(i)}"
+              x2="{calcH(treble_line[i+1])}" y2="{calcV(i+1)}"
+              style="stroke: red; stroke-width: 2; stroke-linecap=round;" class="treble"/>
+      {/each}
+  {/await}
+</svg>
 
 <style>
 
-  :global(body) {
-    background: #d3d1dc;
-  }
-
-  canvas { 
+  svg {
+    width: 400px;
+    height: 900px;
     background: #f5f5f5; 
     margin: 1em;
     border-style: solid;
     border-width: 3px;
     border-color: black;
-    position: absolute;
   }
 
-  #cover {
-    background: rgba(255,255,255,0);
+  :global(body) {
+    background: #d3d1dc;
   }
 
 </style>
@@ -39,7 +60,8 @@
 
 <script>
 
-  import { onMount } from 'svelte';
+  import { sineInOut } from 'svelte/easing';
+  import { fade } from 'svelte/transition';
 
   /* Get path */
   async function getPath(bell){
@@ -51,18 +73,22 @@
           throw new Error(text);
       }
   }
+  let blueline_promise;
+  let blueline;
+  let treble_promise;
+  let treble_line;
+  $: {
+      blueline_promise = getPath(cur_bell);
+      treble_promise = getPath(1);
+      blueline_promise.then((result)=>{blueline = result;});
+      treble_promise.then((result)=>{treble_line = result;});
+  }
 
-
-  let cover;
-  let canvas;
-  let place_width;
-  let row_height;
   let debounce = false;
-  let drawBells;
-  let drawSegment;
-  let drawTreble;
-  let resetAll;
   let input_dir;
+  let canvas_width = 400;
+  let canvas_height = 900;
+  let mistake;
 
 
   var stage = 8;
@@ -71,110 +97,27 @@
   var treble_pos = 1
   var cur_row = 0;
   var cur_pos = 8;
+  var prev_pos = cur_pos;
   var grid_color = '#fff';
   var line_color = '#05a';
   var vertical_offset = 20;
 
-  let correct_line;
-  $: {
-    getPath(cur_bell).then((result)=>{
-    correct_line = result;
-    });
-  }
 
 
   function calcH(place){
-    place_width = canvas.width / stage;
+    var place_width = canvas_width / stage;
     return (place - 0.5) * place_width;
   }
 
   function calcV(row) {
-    row_height = (canvas.height - 2*vertical_offset) / rows;
+    var row_height = (canvas_height - 2*vertical_offset) / rows;
     return row * row_height + vertical_offset
   }
 
-
-  onMount(() => {
-    const ctx = canvas.getContext('2d');
-    const cvr = cover.getContext('2d');
-
-    function drawGrid(){
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (var l=1; l<stage; l++){
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = grid_color;
-        ctx.beginPath();
-        ctx.moveTo(l*place_width, 0);
-        ctx.lineTo(l*place_width, canvas.height);
-        ctx.closePath();
-        ctx.stroke();
-      }
-
-    }
-
-    drawSegment = function (place, dir, width, color){
-      ctx.lineWidth = width;
-      ctx.strokeStyle = color;
-      ctx.beginPath()
-      ctx.moveTo(calcH(place), calcV(cur_row));
-      ctx.lineTo(calcH(place+dir), calcV(cur_row+1));
-      ctx.closePath()
-      ctx.stroke();
-
-    }
-
-    drawTreble = function() {
-      var dir;
-      if (cur_row == 15 || cur_row == 31){
-        dir = 0;
-      } else if (Math.floor(cur_row/15) == 0 && cur_row % 4 == 1){
-        dir = -1;
-      } else if (Math.floor(cur_row/15) == 0 && cur_row % 4 != 1){
-        dir = 1;
-      } else if (Math.floor(cur_row/15) > 0 && cur_row % 4 == 1){
-        dir = 1;
-      } else if (Math.floor(cur_row/15) > 0 && cur_row % 4 != 1){
-        dir = -1
-      }
-      drawSegment(treble_pos, dir, 1, 'red');
-      treble_pos += dir;
-    }
-
-
-    drawBells = function () {
-      cvr.clearRect(0, 0, canvas.width, canvas.height);
-      cvr.fillStyle = 'red';
-      cvr.beginPath();
-      cvr.arc(calcH(treble_pos), calcV(cur_row), 5, 0, 2*Math.PI);
-      cvr.closePath();
-      cvr.fill();
-
-      cvr.fillStyle = line_color;
-      cvr.beginPath();
-      cvr.arc(calcH(cur_pos), calcV(cur_row), 8, 0, 2*Math.PI);
-      cvr.closePath();
-      cvr.fill();
-    }
-
-    resetAll = function() {
-      cur_row = 0;
-      cur_pos = cur_bell;
-      treble_pos = 1;
-      drawBells();
-      drawGrid();
-    }
-      
-    drawBells();
-    drawGrid();
-
-  });
-
-  function drawNextSeg(dir){
-    drawTreble();
-    drawSegment(cur_pos, dir, 3, line_color);
-    cur_pos += dir;
-    cur_row += 1;
-    drawBells();
+  function resetAll() {
+    cur_row = 0;
+    cur_pos = cur_bell;
+    treble_pos = 1;
   }
 
 
@@ -205,10 +148,16 @@
         cur_bell = parseInt(e.key);
         resetAll();
         return;
+      default:
+        return;
+        break;
     }
     if (cur_row >= 32) { return }
-    if (input_dir == correct_line[cur_row]){
-      drawNextSeg(input_dir);
+    if (blueline[cur_row] + input_dir == blueline[cur_row+1]){
+      cur_row += 1;
+    } else {
+      mistake = true;
+      setTimeout(()=>{mistake = false;},100);
     }
 
   }
