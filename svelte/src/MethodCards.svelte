@@ -42,26 +42,36 @@
   import { onMount } from 'svelte';
 
   let cover;
-
   let canvas;
   let place_width;
   let row_height;
-
-
-  var debounce = false;
+  let debounce = false;
   let drawBells;
   let drawSegment;
   let drawTreble;
+  let resetAll;
 
 
   var stage = 8;
   var rows = 32;
   var treble_pos = 1
   var cur_row = 0;
-  var cur_place = 8;
+  var cur_pos = 8;
   var grid_color = '#fff';
   var line_color = '#05a';
   var vertical_offset = 20;
+
+  var correct_line = [-1, 1, -1, -1,
+                      -1, 1, -1, -1,
+                      -1, 1, -1, -1,
+                      -1, 0, 1, 1,
+                      1, -1, 1, 1,
+                      1, -1, 1, 1,
+                      1, -1, 1, 0,
+                      -1, 1, -1, -1]
+  var input_dir;
+
+
 
 
   function calcH(place){
@@ -80,6 +90,7 @@
     const cvr = cover.getContext('2d');
 
     function drawGrid(){
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (var l=1; l<stage; l++){
         ctx.lineWidth = 4;
         ctx.strokeStyle = grid_color;
@@ -131,9 +142,17 @@
 
       cvr.fillStyle = line_color;
       cvr.beginPath();
-      cvr.arc(calcH(cur_place), calcV(cur_row), 8, 0, 2*Math.PI);
+      cvr.arc(calcH(cur_pos), calcV(cur_row), 8, 0, 2*Math.PI);
       cvr.closePath();
       cvr.fill();
+    }
+
+    resetAll = function() {
+      cur_row = 0;
+      cur_pos = 8;
+      treble_pos = 1;
+      drawBells();
+      drawGrid();
     }
       
     drawBells();
@@ -143,24 +162,33 @@
 
   function drawNextSeg(dir){
     drawTreble();
-    drawSegment(cur_place, dir, 3, line_color);
-    cur_place += dir;
+    drawSegment(cur_pos, dir, 3, line_color);
+    cur_pos += dir;
     cur_row += 1;
     drawBells();
   }
 
+
   function keyDownHandler(e) {
     if (debounce) { return }
     if (cur_row >= 32) { return }
-    if (e.keyCode == 37 && cur_place != 1) {
-      drawNextSeg(-1);
+    if (e.keyCode == 13) {
+      resetAll();
+      return;
     }
-    if (e.keyCode == 39 && cur_place != stage) {
-      drawNextSeg(1);
+    if (e.keyCode == 37 && cur_pos != 1) {
+      input_dir = -1;
+    }
+    if (e.keyCode == 39 && cur_pos != stage) {
+      input_dir = 1;
     }
     if (e.keyCode == 40){
-      drawNextSeg(0);
+      input_dir = 0;
     }
+    if (input_dir == correct_line[cur_row]){
+      drawNextSeg(input_dir);
+    }
+
   }
 
   function keyUpHandler(e) {
