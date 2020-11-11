@@ -1,5 +1,5 @@
-import App from './App.svelte';
+import MethodCards from './MethodCards.svelte';
 
-const app = new App({
+const app = new MethodCards({
 	target: document.querySelector('#svelte-app'),
 });
