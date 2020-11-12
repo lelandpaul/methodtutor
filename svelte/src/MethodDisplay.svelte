@@ -67,7 +67,7 @@
 
   import { sineInOut } from 'svelte/easing';
   import { fade } from 'svelte/transition';
-  import { cur_blueline, cur_treble, stage, cur_bell, cards_so_far, card_complete, lead_length, cards_remaining } from './stores.js';
+  import { cur_blueline, cur_treble, stage, cur_bell, cards_so_far, card_complete, lead_length, cards_remaining , mistakes } from './stores.js';
 
   let debounce = false;
   let input_dir;
@@ -127,6 +127,7 @@
       cur_row += 1;
     } else {
       mistake = true;
+      $mistakes += 1;
       setTimeout(()=>{mistake = false;},100);
     }
 

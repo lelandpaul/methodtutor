@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import MethodDisplay from './MethodDisplay.svelte';
   import Card from './Card.svelte';
-  import { cur_blueline, cur_treble, cur_bell, stage, cur_method, cards_so_far, card_complete, lead_length, cards_remaining } from './stores.js';
+  import { cur_blueline, cur_treble, cur_bell, stage, cur_method, cards_so_far, card_complete, lead_length, cards_remaining, mistakes } from './stores.js';
 
   let cur_card;
   let next_card;
@@ -30,6 +30,7 @@
         body: JSON.stringify({
           card_id: id,
           done: true,
+          mistakes: $mistakes,
         }),
     });
   }
@@ -49,10 +50,16 @@
   function keyDownHandler(e){
     switch(e.key) {
       case 'Enter':
-        if ($card_complete){
+        console.log('mistakes: ', $mistakes);
+        if ($card_complete && $mistakes == 0) {
+            console.log('no mistakes')
             markCard(cur_card.id);
             cur_card = next_card;
             getNext();
+        } else if ($card_complete) {
+          console.log('mistakes were made');
+          $card_complete = false;
+          $mistakes = 0;
         }
         break;
     }

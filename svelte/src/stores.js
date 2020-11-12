@@ -10,3 +10,5 @@ export const card_complete = writable(false);
 export const lead_length = writable(0);
 
 export const cards_remaining = writable(0);
+
+export const mistakes = writable(0);
