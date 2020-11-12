@@ -14,30 +14,34 @@
           transition:fade="{{duration: 100, easing: sineInOut}}"/>
   {/if}
 
-  {#if $cur_blueline.length != 0}
+  {#if $cards_remaining > 0}
 
-    <circle cx="{calcH($cur_blueline[cur_row])}" cy="{calcV(cur_row)}"
-            r="8" fill="{line_color}" class="blueline"/>
+    {#if $cur_blueline.length != 0}
 
-    {#each Array(cur_row) as _, i}
-      <line x1="{calcH($cur_blueline[i])}" y1="{calcV(i)}"
-            x2="{calcH($cur_blueline[i+1])}" y2="{calcV(i+1)}"
-            stroke="{line_color}" stroke-width="4" stroke-linecap="round" class="blueline"/>
-    {/each}
-
-  {/if}
-
-  {#if $cur_treble.length != 0}
-
-    <circle cx="{calcH($cur_treble[cur_row])}" cy="{calcV(cur_row)}"
-            r="5" fill="red" class="treble"/>
+      <circle cx="{calcH($cur_blueline[cur_row])}" cy="{calcV(cur_row)}"
+              r="8" fill="{line_color}" class="blueline"/>
 
       {#each Array(cur_row) as _, i}
-
-        <line x1="{calcH($cur_treble[i])}" y1="{calcV(i)}"
-              x2="{calcH($cur_treble[i+1])}" y2="{calcV(i+1)}"
-              style="stroke: red; stroke-width: 2; stroke-linecap=round;" class="treble"/>
+        <line x1="{calcH($cur_blueline[i])}" y1="{calcV(i)}"
+              x2="{calcH($cur_blueline[i+1])}" y2="{calcV(i+1)}"
+              stroke="{line_color}" stroke-width="4" stroke-linecap="round" class="blueline"/>
       {/each}
+
+    {/if}
+
+    {#if $cur_treble.length != 0}
+
+      <circle cx="{calcH($cur_treble[cur_row])}" cy="{calcV(cur_row)}"
+              r="5" fill="red" class="treble"/>
+
+        {#each Array(cur_row) as _, i}
+
+          <line x1="{calcH($cur_treble[i])}" y1="{calcV(i)}"
+                x2="{calcH($cur_treble[i+1])}" y2="{calcV(i+1)}"
+                style="stroke: red; stroke-width: 2; stroke-linecap=round;" class="treble"/>
+        {/each}
+
+    {/if}
 
   {/if}
 
@@ -63,7 +67,7 @@
 
   import { sineInOut } from 'svelte/easing';
   import { fade } from 'svelte/transition';
-  import { cur_blueline, cur_treble, stage, cur_bell, cards_so_far, card_complete, lead_length } from './stores.js';
+  import { cur_blueline, cur_treble, stage, cur_bell, cards_so_far, card_complete, lead_length, cards_remaining } from './stores.js';
 
   let debounce = false;
   let input_dir;

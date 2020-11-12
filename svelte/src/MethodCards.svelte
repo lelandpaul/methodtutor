@@ -2,17 +2,44 @@
   import { onMount } from 'svelte';
   import MethodDisplay from './MethodDisplay.svelte';
   import Card from './Card.svelte';
-  import { cur_blueline, cur_treble, cur_bell, stage, cur_method, cards_so_far, card_complete, lead_length } from './stores.js';
+  import { cur_blueline, cur_treble, cur_bell, stage, cur_method, cards_so_far, card_complete, lead_length, cards_remaining } from './stores.js';
 
   let cur_card;
   let next_card;
 
   /* Get card */
   async function getCard(method, bell){
-    const promise = await fetch('./get_next_card')
+    const promise = await fetch('./api/0/card')
     const text = await promise.json();
     if (promise.ok) {
       return text;
+    } else {
+      throw new Error(text);
+    }
+  }
+
+  /* Mark card as done */
+  async function markCard(id){
+    console.log('marking', id);
+    $cards_remaining -= 1;
+    const response = await fetch('./api/0/card',{
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          card_id: id,
+          done: true,
+        }),
+    });
+  }
+
+  /* Get cards remaining */
+  async function cardsRemaining(){
+    const response = await fetch('./api/0/today');
+    const text = await response.json();
+    if (response.ok) {
+      return text.cards_remaining;
     } else {
       throw new Error(text);
     }
@@ -23,16 +50,12 @@
     switch(e.key) {
       case 'Enter':
         if ($card_complete){
+            markCard(cur_card.id);
             cur_card = next_card;
             getNext();
         }
         break;
     }
-    if (e.key === 'r'){
-      cur_card = next_card;
-      getNext();
-    }
-
   }
 
   function keyUpHandler(e){
@@ -42,7 +65,12 @@
 
   let promise;
 
+  $: console.log($cards_remaining);
+
   onMount(() => {
+
+
+    cardsRemaining().then((result)=> $cards_remaining = result);
 
     promise = getCard()
     promise.then((result)=>{cur_card = result; getNext();});

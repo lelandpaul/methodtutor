@@ -37,14 +37,3 @@ def make_path(pn, pos):
 def get_pn(method_name):
     method = cccbr_methods.get(method_name)
     return method.full_notation_list
-
-def get_card(method_name, place_bell):
-    method = cccbr_methods.get(method_name)
-    card = {
-        'method': method.title,
-        'stage': method.stage,
-        'treble_path': make_path(method.full_notation_list, 1),
-        'place_bell': place_bell,
-        'blueline': make_path(method.full_notation_list, place_bell)
-    }
-    return card

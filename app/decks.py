@@ -5,9 +5,13 @@ from random import choice
 
 class Card:
     def __init__(self, method_name, place_bell):
+        self.id = method_name + str(place_bell)
         self.method_name = method_name
         self.place_bell = place_bell
         self.show_next = date.today()
+
+    def mark_done(self):
+        self.show_next += timedelta(days=1)
 
     @property
     def method(self):
@@ -16,6 +20,7 @@ class Card:
     @property
     def card_dict(self):
         card = {
+            'id': self.id,
             'method': self.method.title,
             'stage': self.method.stage,
             'treble_path': make_path(self.method.full_notation_list, 1),
@@ -57,5 +62,7 @@ class Deck:
         if not self.cards_remaining:
             return Card.empty_card()
         card = choice(self.cards_remaining)
-        card.show_next = date.today() + timedelta(days = 1)
         return card.card_dict
+
+    def __getitem__(self, id):
+        return [card for card in self.cards if card.id == id][0]
