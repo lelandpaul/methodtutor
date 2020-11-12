@@ -53,9 +53,18 @@ class Card(db.Model):
     id = db.Column(db.String(), primary_key=True)
     method_name = db.Column(db.String())
     place_bell = db.Column(db.Integer)
-    study_next = db.Column(db.Date)
     fk_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship("User", back_populates="cards")
+
+    ease = db.Column(db.Float, default=1.2)
+    interval = db.Column(db.Float, default=1.0)
+    study_next = db.Column(db.Date)
+
+    # times_reviewed increments every time
+    times_reviewed = db.Column(db.Integer, default=0)
+
+    # The last times_reviewed in which the card entered relearn/new mode
+    relearn = db.Column(db.Integer, default=0)
 
     def mark_done(self):
         self.show_next += timedelta(days=1)
