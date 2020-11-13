@@ -12,16 +12,15 @@ class User(UserMixin, db.Model):
     def add_method(self, method_name):
         method = cccbr_methods.get(method_name)
         for i in range(2, method.stage + 1):
-            c = Card(id = '{}-{}-{}'.format(self.id, method.title, i),
-                     method_name = method.title,
+            c = Card(method_name = method.title,
                      place_bell = i,
-                     user = self,
-                     study_next = date.today())
+                     user = self)
+            schedule_card(c)
             db.session.add(c)
         db.session.commit()
 
     def today(self):
-        return [c for c in self.cards if c.study_next <= date.today()]
+        return [c for c in self.cards if c.scheduled <= date.today()]
 
     def get_card(self, card_id):
         for card in self.cards:
@@ -29,28 +28,26 @@ class User(UserMixin, db.Model):
                 return card
         return None
 
-    def mark_card(self, card_id):
+    def mark_card(self, card_id, faults):
         card = self.get_card(card_id)
-        card.study_next += timedelta(days=1)
-        db.session.commit()
-        return card
+        return schedule_card(card, faults)
 
     def reset_card(self, card_id):
         card = self.get_card(card_id)
-        card.study_next = date.today()
+        card.reset()
         db.session.commit()
         return card
 
     def reset_all_cards(self):
         for card in self.cards:
-            card.study_next = date.today()
+            card.reset()
         db.session.commit()
         return len(self.today())
 
 
 
 class Card(db.Model):
-    id = db.Column(db.String(), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     method_name = db.Column(db.String())
     place_bell = db.Column(db.Integer)
     fk_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -58,13 +55,13 @@ class Card(db.Model):
 
     ease = db.Column(db.Float, default=1.2)
     interval = db.Column(db.Float, default=1.0)
-    study_next = db.Column(db.Date)
+    scheduled = db.Column(db.Date)
+    learn_mode = db.Column(db.Integer, default=0)
 
-    # times_reviewed increments every time
-    times_reviewed = db.Column(db.Integer, default=0)
+    reviews = db.relationship("Event", back_populates="card")
 
-    # The last times_reviewed in which the card entered relearn/new mode
-    relearn = db.Column(db.Integer, default=0)
+    def __repr__(self):
+        return "{} {}".format(self.method_name, self.place_bell)
 
     def mark_done(self):
         self.show_next += timedelta(days=1)
@@ -85,3 +82,81 @@ class Card(db.Model):
             'lead_length': self.method.lengthoflead,
         }
         return card
+
+    def reset(self):
+        self.ease = 1.2
+        self.interval = 1.0
+        self.scheduled = date.today()
+        self.learn_mode = 0
+
+
+class Event(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    fk_card_id = db.Column(db.Integer, db.ForeignKey('card.id'))
+    card = db.relationship("Card", back_populates="reviews")
+    date = db.Column(db.Date)
+    last_interval = db.Column(db.Integer)
+
+
+def schedule_card(card, faults=0):
+
+    # First case: If the card is brand new, schedule it for today.
+    if card.scheduled is None:
+        print('Scheduled {}: New case'.format(card.id))
+        card.scheduled = date.today()
+        db.session.commit()
+        return card
+
+    # If the card isn't brand-new, we need to create an event for it
+    e = Event(card=card, date=date.today(), last_interval=int(card.interval))
+    db.session.add(e)
+
+    # Second case: The card is in learn mode, so just follow the sequence
+    if card.learn_mode < 4:
+        print('Scheduled {}: Learn case'.format(card.id))
+        interval = [1,1,2,2][card.learn_mode]
+        card.learn_mode += 1 # Advance to the next stage
+        card.scheduled += timedelta(days=interval)
+        print('...scheduled for {}'.format(card.scheduled))
+        db.session.commit()
+        return card
+
+    # Third case: Relearn
+    if faults >= 5:
+        print('Scheduled {}: Relearn case'.format(card.id))
+        card.learn_mode = 0 # Reset to learning mode
+        card.ease = max(1.3, card.ease - 0.2) # decrease ease w/ minimum
+        card.interval = min(7.0, card.interval) # decrease interval
+        card.scheduled = date.today() # review it again today
+        print('...scheduled for {}'.format(card.scheduled))
+        db.session.commit()
+        return card
+
+    # Fourth case: Bad
+    if faults >= 3:
+        print('Scheduled {}: Bad case'.format(card.id))
+        card.ease = max(1.3, card.ease - 0.15) # decrease ease w/ minimum
+        card.interval = card.interval * 1.2
+        card.scheduled += timedelta(days=int(card.interval))
+        db.session.commit()
+        return card
+
+    # Fifth case: Good
+    if faults >= 1:
+        print('Scheduled {}: Good case'.format(card.id))
+        # Ease unchanged
+        card.interval = card.interval * card.ease
+        card.scheduled += timedelta(days=int(card.interval))
+        print('...scheduled for {}'.format(card.scheduled))
+        db.session.commit()
+        return card
+
+    # Sixth case: Easy
+    print('Scheduled {}: Easy case'.format(card.id))
+    card.ease += 0.1
+    card.interval *= card.ease
+    card.scheduled += timedelta(days=int(card.interval))
+    print('...scheduled for {}'.format(card.scheduled))
+    db.session.commit()
+    return card
+

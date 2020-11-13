@@ -2,64 +2,38 @@
   import { onMount } from 'svelte';
   import MethodDisplay from './MethodDisplay.svelte';
   import Card from './Card.svelte';
-  import { cur_blueline, cur_treble, cur_bell, stage, cur_method, cards_so_far, card_complete, lead_length, cards_remaining, mistakes } from './stores.js';
+  import { cur_blueline, cur_treble, cur_bell, stage, cur_method, card_complete, lead_length, cards_today, mistakes } from './stores.js';
+  import { get, post } from './ajax.js';
 
   let cur_card;
-  let next_card;
+
+
+  /* Get scheduled cards */
+  async function cardsToday(){
+    return await get('today');
+  }
 
   /* Get card */
-  async function getCard(method, bell){
-    const promise = await fetch('./api/0/card')
-    const text = await promise.json();
-    if (promise.ok) {
-      return text;
-    } else {
-      throw new Error(text);
-    }
+  async function getCard(card_id){
+    return await get('card/' + card_id);
   }
 
-  /* Mark card as done */
-  async function markCard(id){
-    console.log('marking', id);
-    $cards_remaining -= 1;
-    const response = await fetch('./api/0/card',{
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          card_id: id,
-          done: true,
-          mistakes: $mistakes,
-        }),
-    });
+  /* Post results */
+  async function postResults(card_id, faults){
+    post('card/' + card_id, {card_id: card_id, faults: faults})
   }
-
-  /* Get cards remaining */
-  async function cardsRemaining(){
-    const response = await fetch('./api/0/today');
-    const text = await response.json();
-    if (response.ok) {
-      return text.cards_remaining;
-    } else {
-      throw new Error(text);
-    }
-  }
-
 
   function keyDownHandler(e){
     switch(e.key) {
       case 'Enter':
-        console.log('mistakes: ', $mistakes);
-        if ($card_complete && $mistakes == 0) {
-            console.log('no mistakes')
-            markCard(cur_card.id);
-            cur_card = next_card;
-            getNext();
-        } else if ($card_complete) {
-          console.log('mistakes were made');
-          $card_complete = false;
-          $mistakes = 0;
+        if ($card_complete) {
+            postResults(cur_card.id, $mistakes);
+          if ($mistakes <= 1){
+            $cards_today = [...$cards_today.slice(1)]
+          } else {
+            $cards_today = [...$cards_today.slice(1), $cards_today[0]]
+          }
+            $mistakes = 0;
         }
         break;
     }
@@ -69,34 +43,17 @@
     return;
   }
 
+  $: console.log($cards_today, $card_complete);
 
-  let promise;
-
-  $: console.log($cards_remaining);
+  $: if ($cards_today.length > 0) {
+        getCard($cards_today[0].card_id).then((result)=>cur_card=result);
+      } else {
+        cur_card = {method: null, stage: 8};
+    }
 
   onMount(() => {
 
-
-    cardsRemaining().then((result)=> $cards_remaining = result);
-
-    promise = getCard()
-    promise.then((result)=>{cur_card = result; getNext();});
-
-    window.getNext = function (){
-      var next_card_promise = getCard();
-      next_card_promise.then((result) => {
-        next_card = result;
-        $cards_so_far++;
-
-        cur_bell.set(cur_card.place_bell);
-        cur_blueline.set(cur_card.blueline);
-        cur_treble.set(cur_card.treble_path);
-        stage.set(cur_card.stage);
-        cur_method.set(cur_card.method);
-        lead_length.set(cur_card.lead_length);
-      });
-    }
-
+    cardsToday().then((result) => {$cards_today = result})
 
   });
 
@@ -108,13 +65,12 @@
 
   <div class="col-5">
 
-    {#await promise then promise}
 
-      <Card/>
+    <Card method={cur_card.method} bell={cur_card.place_bell}/>
 
-      <MethodDisplay/>
 
-    {/await}
+    <MethodDisplay {...cur_card}/>
+
 
   </div>
 

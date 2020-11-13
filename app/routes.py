@@ -1,8 +1,7 @@
 from flask import send_from_directory, render_template, jsonify, request
 from app import app
-from app.methods import make_path, get_pn
-from app.models import User, Card
-from random import choice
+from app.models import User
+from random import shuffle
 
 # Serve Svelte apps
 @app.route("/<path:path>")
@@ -16,34 +15,32 @@ def index():
 
 # API
 
-@app.route("/api/<int:deck_id>/card", methods=["GET"])
-def get_card(deck_id=0):
-    user = User.query.get(0)
+@app.route("/api/card/<int:card_id>", methods=["GET"])
+def get_card(card_id):
+    user = User.query.get(1)
 
     if len(user.today()) == 0:
-        return jsonify({ 'id': 0,
-                         'method': 'All done!',
-                         'stage': 8,
-                         'treble_path': [],
-                         'place_bell': 1,
-                         'blueline': [],
-                         'lead_length': 32,
-                    })
+        return None
 
-
-    card = choice(user.today())
+    card = user.get_card(card_id)
     return jsonify(card.card_dict)
 
-@app.route("/api/<int:deck_id>/card", methods=["POST"])
-def report_result(deck_id=0):
-    user = User.query.get(0) # use the default user for testing purposes
-    card_id = request.json['card_id']
-    user.mark_card(card_id)
+@app.route("/api/card/<int:card_id>", methods=["POST"])
+def report_result(card_id):
+    user = User.query.get(1) # use the default user for testing purposes
+
+    faults = request.json['faults']
+    print("{} faults reported".format(faults))
+
+    user.mark_card(card_id, faults)
     print(user.today())
     return "good"
 
-@app.route("/api/<int:deck_id>/today", methods=["GET"])
-def get_today(deck_id=0):
-    user = User.query.get(0)
-    return jsonify({'cards_remaining': len(user.today())})
-
+@app.route("/api/today", methods=["GET"])
+def get_today():
+    user = User.query.get(1)
+    cards = [{'card_id': card.id} for card in user.today()]
+    if not cards:
+        return jsonify([])
+    shuffle(cards)
+    return jsonify(cards)
