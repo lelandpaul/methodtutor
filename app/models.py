@@ -60,6 +60,8 @@ class Card(db.Model):
 
     reviews = db.relationship("Event", back_populates="card")
 
+    bumper_mode = db.Column(db.Boolean, default=True)
+
     def __repr__(self):
         return "{} {}".format(self.method_name, self.place_bell)
 
@@ -80,6 +82,7 @@ class Card(db.Model):
             'place_bell': self.place_bell,
             'blueline': make_path(self.method.full_notation_list, self.place_bell),
             'lead_length': self.method.lengthoflead,
+            'bumper_mode': self.bumper_mode,
         }
         return card
 
@@ -112,11 +115,13 @@ def schedule_card(card, faults=0):
     db.session.add(e)
 
     # Second case: The card is in learn mode, so just follow the sequence
+    # Also take it out of bumper mode
     if card.learn_mode < 4:
         print('Scheduled {}: Learn case'.format(card.id))
         interval = [1,1,2,2][card.learn_mode]
         card.learn_mode += 1 # Advance to the next stage
         card.scheduled += timedelta(days=interval)
+        card.bumper_mode = False
         print('...scheduled for {}'.format(card.scheduled))
         db.session.commit()
         return card
@@ -128,6 +133,7 @@ def schedule_card(card, faults=0):
         card.ease = max(1.3, card.ease - 0.2) # decrease ease w/ minimum
         card.interval = min(7.0, card.interval) # decrease interval
         card.scheduled = date.today() # review it again today
+        card.bumper_mode = True
         print('...scheduled for {}'.format(card.scheduled))
         db.session.commit()
         return card
