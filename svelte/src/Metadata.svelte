@@ -21,8 +21,6 @@
       break;
   }
 
-  console.log(bumper_mode);
-
 </script>
 
 <style>
@@ -54,7 +52,7 @@
 
 </div>
 
-{#if bumper_mode && !card_complete}
+{#if bumper_mode && !$card_complete}
   <div class="card mb-2">
     <div class="card-body">
       <h4 class="card-title">

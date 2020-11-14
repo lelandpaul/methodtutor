@@ -49,9 +49,6 @@
 
   });
 
-  $: if ($mistakes >= 4){
-    cur_card.bumper_mode = true;
-  }
 
 </script>
 
@@ -70,7 +67,8 @@
 
       <Card method={cur_card.method} bell={cur_card.place_bell}/>
 
-      <MethodDisplay {...cur_card} {cards_shown}/>
+      <MethodDisplay {...cur_card} {cards_shown} 
+        on:trigger_bumper={()=>{$mistakes = 5; cur_card.bumper_mode = true;}}/>
 
 
 

@@ -2,23 +2,27 @@
 
 
 <svg xmlns="http://www.w3.org/2000/svg" 
-    style="width:{canvas_width}; 
+    class:bumper_mode
+    style="width:{canvas_width};
     height: {canvas_height};
-    border-style: {bumper_mode ? 'solid' : 'none'}
     "
           viewBox="0 0 {canvas_width} {canvas_height}"
         >
   {#each Array(stage-1) as _, i}
     <line x1="{stage, calcH(i+1.5)}" y1="-10" 
           x2="{stage, calcH(i+1.5)}" y2="910" 
-          style="stroke: #a5a5a5;
+          style="stroke: rgba(0,0,0, 0.125);
                  stroke-width: 2"
-          stroke-dasharray="{i % 2 == 0 ? '5,5' : '0'}"/>
+          stroke-dasharray="{i % 2 == 0 ? '4,4' : '0'}"/>
   {/each}
 
   {#each Array(stage) as _, i}
-    <text x="{stage, calcH(i+0.92)}" y="20">{i+1}</text>
-    <text x="{stage, calcH(i+0.92)}" y="{canvas_height - 10}">{i+1}</text>
+    <text x="{stage, calcH(i+1)}" y="20" text-anchor="middle">
+      { i+1 === 10 ? '0' : i+1 === 11 ? 'E' : i+1 === 12 ? 'T' : i+1 }
+    </text>
+    <text x="{stage, calcH(i+1)}" y="{canvas_height - 10}" text-anchor="middle">
+      { i+1 === 10 ? '0' : i+1 === 11 ? 'E' : i+1 === 12 ? 'T' : i+1 }
+    </text>
   {/each}
 
   {#if mistake}
@@ -64,6 +68,9 @@
 
     {#each Array(cur_row) as _, i}
 
+    <circle cx="{calcH(blueline[cur_row])}" cy="{calcV(cur_row)}"
+            r="8" fill="{$card_complete ? faded_color : line_color}" class="correction"/>
+
         <line x1="{calcH(blueline[i])}" y1="{calcV(i)}"
               x2="{calcH(blueline[i+1])}" y2="{calcV(i+1)}"
               style="stroke: {$card_complete ? faded_color : line_color};"
@@ -76,18 +83,24 @@
 
 </svg>
 
-
 <style>
 
   svg {
-    background: #fff; 
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 0.25em;
+  }
+
+  svg.bumper_mode {
+    background: #eee;
     border-color: black;
-    border-width: 4px;
+    border-width: 2px;
   }
 
   :global(body) {
     background: #d3d1dc;
   }
+
 
 
 </style>
@@ -97,7 +110,10 @@
 
   import { sineInOut } from 'svelte/easing';
   import { fade } from 'svelte/transition';
+  import { createEventDispatcher } from 'svelte';
   import { card_complete, cards_today, mistakes } from './stores.js';
+
+  const dispatch = createEventDispatcher();
 
   export let id = null;
   export let method = null;
@@ -198,8 +214,7 @@
         break;
       case "Escape":
         if (!bumper_mode) {
-          $mistakes = 5;
-          bumper_mode = true;
+          dispatch('trigger_bumper');
         }
       case "ArrowUp":
       case "Enter":
