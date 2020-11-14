@@ -35,11 +35,21 @@
     width: 440px;
     left: -5px;
   }
+
+  #settings {
+    position: absolute;
+    left: 1.25rem;
+    top: 1.25rem;
+  }
+
 </style>
 
 <div class="card mb-2">
   <div class="card-body py-0 text-center">
+
+
     <h3 class="card-title mt-3 mb-3">
+      <i class="fas fa-cog" id="settings" data-toggle="modal" data-target="#cardManager"></i> 
       Method Tutor
     </h3>
   </div>

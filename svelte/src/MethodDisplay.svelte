@@ -18,10 +18,10 @@
 
   {#each Array(stage) as _, i}
     <text x="{stage, calcH(i+1)}" y="20" text-anchor="middle">
-      { i+1 === 10 ? '0' : i+1 === 11 ? 'E' : i+1 === 12 ? 'T' : i+1 }
+      { bellName(i+1) }
     </text>
     <text x="{stage, calcH(i+1)}" y="{canvas_height - 10}" text-anchor="middle">
-      { i+1 === 10 ? '0' : i+1 === 11 ? 'E' : i+1 === 12 ? 'T' : i+1 }
+      { bellName(i+1) }
     </text>
   {/each}
 
@@ -112,6 +112,7 @@
   import { fade } from 'svelte/transition';
   import { createEventDispatcher } from 'svelte';
   import { card_complete, cards_today, mistakes } from './stores.js';
+  import { bellName } from './helpers.js';
 
   const dispatch = createEventDispatcher();
 

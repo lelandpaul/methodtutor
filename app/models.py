@@ -86,6 +86,16 @@ class Card(db.Model):
         }
         return card
 
+    @property
+    def card_meta(self):
+        meta = {
+            'method': self.method.title,
+            'place_bell': self.place_bell,
+            'scheduled': self.scheduled,
+            'ease': self.ease,
+        }
+        return meta
+
     def reset(self):
         self.ease = 1.2
         self.interval = 1.0

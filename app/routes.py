@@ -48,3 +48,12 @@ def report_result(card_id):
     user.mark_card(card_id, faults)
     print(user.today())
     return "good"
+
+@app.route("/api/cards", methods=['GET'])
+def get_all_cards():
+    user = User.query.get(1)
+
+    all_cards = [c.card_meta for c in user.cards]
+    return jsonify(all_cards)
+
+

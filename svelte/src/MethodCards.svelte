@@ -3,6 +3,7 @@
   import MethodDisplay from './MethodDisplay.svelte';
   import Card from './Card.svelte';
   import Metadata from './Metadata.svelte';
+  import CardManager from './CardManager.svelte';
   import { cur_blueline, cur_treble, cur_bell, stage, cur_method, card_complete, lead_length, cards_today, mistakes } from './stores.js';
   import { get, post } from './ajax.js';
 
@@ -75,5 +76,7 @@
   </div>
 
   {/if}
+
+  <CardManager/>
 
 </div>

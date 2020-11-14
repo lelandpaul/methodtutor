@@ -16,6 +16,8 @@
     "svelte": "^3.29.4"
   },
   "dependencies": {
+    "dayjs": "^1.9.6",
+    "luxon": "^1.25.0",
     "moment": "^2.29.1",
     "sirv-cli": "^1.0.0"
   }
