@@ -64,7 +64,7 @@
 
   {/if}
 
-  {#if $card_complete && $mistakes > 0 }
+  {#if $card_complete && mistakes > 0 }
 
     {#each Array(cur_row) as _, i}
 
@@ -156,13 +156,41 @@
     cur_row = 0;
     cur_pos = place_bell;
     treble_pos = 1;
-    $card_complete = false;
     free_blueline = [place_bell];
+    gave_up = false;
   }
 
   /* $: $cards_so_far, resetAll(); */
   $: $card_complete = cur_row >= lead_length;
   $: cards_shown, resetAll()
+
+  function calcLineDiff(){
+    let diff_array = [];
+    let local_mistakes = 0;
+    for (let i = 0; i < free_blueline.length; i++){
+      diff_array.push(blueline[i] - free_blueline[i]);
+    }
+    for (let i = 1; i < diff_array.length; i++){
+      if (diff_array[i] != diff_array[i-1] && diff_array[i] != 0){
+        local_mistakes += 1;
+      }
+    }
+    return local_mistakes;
+  }
+
+  let gave_up = false;
+  function reportResults(){
+    if (!bumper_mode) {
+      $mistakes = calcLineDiff()
+      } else {
+      $mistakes = 0;
+    }
+    dispatch('report_results',{
+      mistakes: $mistakes,
+      gave_up: gave_up,
+      bumper_mode: bumper_mode,
+    });
+  }
 
   function updateBumper(dir){
     if (blueline[cur_row] + input_dir == blueline[cur_row+1]){
@@ -170,19 +198,6 @@
     } else {
       mistake = true;
       setTimeout(()=>{mistake = false;},100);
-    }
-  }
-
-  function calcLineDiff(){
-    let diff_array = [];
-    $mistakes = 0;
-    for (let i = 0; i < free_blueline.length; i++){
-      diff_array.push(blueline[i] - free_blueline[i]);
-    }
-    for (let i = 1; i < diff_array.length; i++){
-      if (diff_array[i] != diff_array[i-1] && diff_array[i] != 0){
-        $mistakes += 1;
-      }
     }
   }
 
@@ -196,10 +211,11 @@
     cur_row += 1;
     cur_pos += dir;
     free_blueline.push(cur_pos);
-
   }
 
-  $: $card_complete, calcLineDiff();
+  $: if ($card_complete) {
+      reportResults()
+  }
 
   function keyDownHandler(e) {
     if (debounce) { return }
@@ -214,12 +230,20 @@
         input_dir = 1;
         break;
       case "Escape":
+        resetAll()
         if (!bumper_mode) {
           dispatch('trigger_bumper');
+          gave_up = true;
         }
+        return;
+        break;
+      case "Space":
       case "ArrowUp":
       case "Enter":
         resetAll()
+        if ($card_complete) {
+          dispatch('done');
+        }
         return;
         break;
       default:

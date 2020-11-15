@@ -61,8 +61,7 @@ def report_result(card_id):
     print("{} faults reported".format(faults))
 
     user.mark_card(card_id, faults)
-    print(user.today())
-    return "good"
+    return jsonify({'result': 'ok'})
 
 @app.route("/api/cards", methods=['GET'])
 def get_all_cards():

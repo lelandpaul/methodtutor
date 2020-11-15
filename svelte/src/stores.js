@@ -11,5 +11,3 @@ export const lead_length = writable(0);
 export const cards_today = writable([]);
 
 export const mistakes = writable(0);
-
-export const modal_overflow = writable(false);

@@ -156,7 +156,7 @@ def schedule_card(card, faults=0):
         print('Scheduled {}: Learn case'.format(card.id))
         interval = [1,1,2,2][card.learn_mode]
         card.learn_mode += 1 # Advance to the next stage
-        card.scheduled += timedelta(days=interval)
+        card.scheduled = date.today() + timedelta(days=interval)
         card.bumper_mode = False
         print('...scheduled for {}'.format(card.scheduled))
         db.session.commit()
@@ -179,7 +179,7 @@ def schedule_card(card, faults=0):
         print('Scheduled {}: Bad case'.format(card.id))
         card.ease = max(1.3, card.ease - 0.15) # decrease ease w/ minimum
         card.interval = card.interval * 1.2
-        card.scheduled += timedelta(days=int(card.interval))
+        card.scheduled = date.today() + timedelta(days=int(card.interval))
         db.session.commit()
         return card
 
@@ -188,7 +188,7 @@ def schedule_card(card, faults=0):
         print('Scheduled {}: Good case'.format(card.id))
         # Ease unchanged
         card.interval = card.interval * card.ease
-        card.scheduled += timedelta(days=int(card.interval))
+        card.scheduled = date.today() + timedelta(days=int(card.interval))
         print('...scheduled for {}'.format(card.scheduled))
         db.session.commit()
         return card
@@ -197,7 +197,7 @@ def schedule_card(card, faults=0):
     print('Scheduled {}: Easy case'.format(card.id))
     card.ease += 0.1
     card.interval *= card.ease
-    card.scheduled += timedelta(days=int(card.interval))
+    card.scheduled = date.today() + timedelta(days=int(card.interval))
     print('...scheduled for {}'.format(card.scheduled))
     db.session.commit()
     return card

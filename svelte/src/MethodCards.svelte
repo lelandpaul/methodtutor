@@ -4,7 +4,7 @@
   import Card from './Card.svelte';
   import Metadata from './Metadata.svelte';
   import CardManager from './CardManager.svelte';
-  import { cur_blueline, cur_treble, cur_bell, stage, cur_method, card_complete, lead_length, cards_today, mistakes } from './stores.js';
+  import { cur_blueline, cur_treble, cur_bell, stage, cur_method, card_complete, lead_length, cards_today } from './stores.js';
   import { get, post } from './ajax.js';
 
   let cur_card;
@@ -20,27 +20,17 @@
   }
 
   /* Post results */
-  async function postResults(card_id, faults){
-    return await post('card/' + card_id, {card_id: card_id, faults: faults})
-  }
-
-  function keyDownHandler(e){
-    switch(e.key) {
-      case 'Space':
-      case 'ArrowUp':
-      case 'Enter':
-        if ($card_complete) {
-            postResults(cur_card.id, $mistakes).then((results)=>{
-              $mistakes = 0;
-              getStatus();
-            });
-        }
-        break;
+  async function postResults(card_id, details){
+    let faults = details.mistakes;
+    if (details.bumper_mode) {
+      /* don't report faults in bumper mode... */
+      faults = 0
     }
-  }
-
-  function keyUpHandler(e){
-    return;
+    if (details.gave_up) {
+      /* ...unless we're there because the user gave up */
+      faults = 5;
+    }
+    return await post('card/' + card_id, {card_id: card_id, faults: faults})
   }
 
 
@@ -52,8 +42,6 @@
 
 
 </script>
-
-<svelte:window on:keydown={keyDownHandler} on:keyup={keyUpHandler}/>
 
 <div class="row pt-4">
 
@@ -69,7 +57,9 @@
       <Card method={cur_card.method} bell={cur_card.place_bell}/>
 
       <MethodDisplay {...cur_card} {cards_shown} 
-        on:trigger_bumper={()=>{$mistakes = 5; cur_card.bumper_mode = true;}}/>
+        on:trigger_bumper={()=>{cur_card.bumper_mode = true;}}
+        on:report_results={(e)=>postResults(cur_card.id, e.detail)}
+        on:done={getStatus}/>
 
 
 

@@ -7,12 +7,10 @@
 
 
   async function getCardList(){
-    console.log('getting cards')
     return await get('cards');
   }
 
   async function getMethodList(){
-    console.log('getting methods')
     return await get('user/methods');
   }
 
