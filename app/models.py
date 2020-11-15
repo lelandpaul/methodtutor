@@ -117,7 +117,7 @@ class Card(db.Model):
         meta = {
             'method': self.method.title,
             'place_bell': self.place_bell,
-            'scheduled': self.scheduled,
+            'scheduled': self.scheduled.isoformat(),
             'ease': self.ease,
         }
         return meta

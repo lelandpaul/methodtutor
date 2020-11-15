@@ -17,13 +17,13 @@
 
   function formatDate(d){
     let djs = dayjs.tz(d);
-    if (dayjs().isSameOrAfter(djs, 'day')){
+    if (djs.isBefore(dayjs().add(1, 'days'), 'day')){
       return 'today';
-    } else if (dayjs().add(1,'day').isSameOrAfter(djs, 'day')){
+    } else if (djs.isBefore(dayjs().add(2, 'days'), 'day')){
 
       return 'tomorrow';
     } else {
-      return djs.toNow(true);
+      return djs.from(dayjs().startOf('day'));
     }
   }
 
@@ -47,12 +47,12 @@
 		// Modifier to sorting function for ascending or descending
 		let sortModifier = (sortBy.ascending) ? 1 : -1;
 		
-		let sort = (a, b) => 
-			(a[column] < b[column]) 
-			? -1 * sortModifier 
-			: (a[column] > b[column]) 
-			? 1 * sortModifier 
-			: 0;
+    let sort = (a, b) => 
+      (a[column] < b[column]) 
+      ? -1 * sortModifier 
+      : (a[column] > b[column]) 
+      ? 1 * sortModifier 
+      : 0;
 		
 		data = data.sort(sort);
 	}
@@ -70,7 +70,6 @@
       });
     }
   };
-
 
 </script>
 
