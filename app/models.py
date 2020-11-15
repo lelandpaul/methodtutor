@@ -10,6 +10,8 @@ class User(UserMixin, db.Model):
     cards = db.relationship("Card", back_populates="user")
 
     def add_method(self, method_name):
+        if method_name in [m['method'] for m in self.methods]:
+            return False
         method = cccbr_methods.get(method_name)
         for i in range(2, method.stage + 1):
             c = Card(method_name = method.title,
@@ -17,6 +19,13 @@ class User(UserMixin, db.Model):
                      user = self)
             schedule_card(c)
             db.session.add(c)
+        db.session.commit()
+        return True
+
+    def remove_method(self, method_name):
+        for card in self.cards:
+            if card.method_name == method_name:
+                db.session.delete(card)
         db.session.commit()
 
     def today(self):
@@ -43,6 +52,23 @@ class User(UserMixin, db.Model):
             card.reset()
         db.session.commit()
         return len(self.today())
+
+    @property
+    def methods(self):
+        methods = {card.method.title for card in self.cards}
+        method_stats = []
+        for method in methods:
+            total = len([card for card in self.cards
+                         if card.method.title == method])
+            new = len([card for card in self.cards
+                       if card.method.title == method
+                       and len(card.reviews) == 0])
+            method_stats.append({
+                'method': method,
+                'total': total,
+                'new': new,
+            })
+        return method_stats
 
 
 

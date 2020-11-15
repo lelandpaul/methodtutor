@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { bellName } from './helpers.js';
+  import { createEventDispatcher } from 'svelte';
 
   import dayjs from 'dayjs';
   import relativeTime from 'dayjs/plugin/relativeTime';
@@ -28,6 +29,8 @@
 
 
   export let data;
+  export let headers;
+  export let remove = false;
 	
 	// Holds table sort state.  Initialized to reflect table sorted by id column ascending.
 	let sortBy = {col: "scheduled", ascending: false};
@@ -58,6 +61,15 @@
     sort('scheduled');
   });
 
+  const dispatch = createEventDispatcher();
+
+  function triggerDelete(method_name){
+    if (confirm("This will delete all cards associated with this method. It cannot be undone. Are you sure you want to proceed?")){
+      dispatch('delete_method', {
+        method_name: method_name,
+      });
+    }
+  };
 
 
 </script>
@@ -88,31 +100,37 @@
 <table class="table table-sm table-striped">
   <thead>
     <tr>
-      <th scope="col" class="text-left" on:click={sort("method")}>
-        Method
-        <span class:hide="{sortBy.col!=='method'}">{ sortBy.ascending ? '▲' : '▼' }</span>
+      {#each Object.entries(headers) as [prop, header] (prop)}
+      <th scope="col" class="text-left" on:click={sort(prop)}>
+        {header}
+        <span class:hide="{sortBy.col!==prop}">{ sortBy.ascending ? '▲' : '▼' }</span>
       </th>
-      <th scope="col" class="text-left" on:click={sort("place_bell")}>
-        Bell
-        <span class:hide="{sortBy.col!=='place_bell'}">{ sortBy.ascending ? '▲' : '▼' }</span>
-      </th>
-      <th scope="col" class="text-left" on:click={sort("scheduled")}>
-        Next Review
-        <span class:hide="{sortBy.col!=='scheduled'}">{ sortBy.ascending ? '▲' : '▼' }</span>
-      </th>
-      <th scope="col" class="text-left" on:click={sort("ease")}>
-        Ease
-        <span class:hide="{sortBy.col!=='ease'}">{ sortBy.ascending ? '▲' : '▼' }</span>
-      </th>
+      {/each}
+      {#if remove}
+        <th scope="col" class="text-left">
+        </th>
+      {/if}
     </tr>
   </thead>
   <tbody>
       {#each data as card}
         <tr>
-          <td>{card.method}</td>
-          <td>{bellName(card.place_bell)}</td>
-          <td>{formatDate(card.scheduled)}</td>
-          <td>{card.ease}</td>
+          {#each Object.entries(headers) as [prop, header] (prop)}
+            <td>
+              {#if prop === 'scheduled'}
+                {formatDate(card.scheduled)}
+              {:else if prop ==='place_bell'}
+                {bellName(card.place_bell)}
+              {:else}
+                {card[prop]}
+              {/if}
+            </td>
+          {/each}
+          {#if remove}
+            <td class="text-right">
+              <a class="delete" href="#" on:click={triggerDelete(card.method)}><i class="fas fa-minus-circle text-danger"></i></a>
+            </td>
+          {/if}
         </tr>
       {/each}
   </tbody>
