@@ -1,8 +1,11 @@
-from flask import send_from_directory, render_template, jsonify, request
-from app import app
+from flask import send_from_directory, render_template, jsonify, request, redirect, url_for
+from app import app, db
+from flask_login import current_user, login_required, login_user, logout_user
 from app.models import User
 from random import choice
 import cccbr_methods
+import requests
+from base64 import b64encode
 
 # Serve Svelte apps
 @app.route("/<path:path>")
@@ -10,33 +13,74 @@ def svelte_client(path):
     return send_from_directory('../svelte/public/', path)
 
 @app.route("/")
+@login_required
 def index():
     return render_template('methodcards.html')
+
+@app.route("/login", methods=["GET"])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    return render_template('login.html')
+
+@app.route("/api/login", methods=["POST"])
+def api_login():
+    email, password = request.json['email'], request.json['password']
+    print('received:', email, password)
+
+    resp = requests.post('https://ringingroom.com/api/tokens',
+                         auth=(email,password))
+
+    print(resp.status_code)
+
+    if resp.status_code == 401:
+        print('bad response')
+        return jsonify({"success": False})
+
+    print('good response')
+
+    u = User.query.filter_by(email=email).first()
+    if not u:
+        u = User(email=email)
+        db.session.add(u)
+        db.session.commit()
+
+    print('u', u)
+
+    login_user(u)
+
+    print('logged in:', current_user.id)
+
+    return jsonify({'success': True})
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    logout_user()
+
+    return jsonify({'logout': True})
 
 
 # API
 
 @app.route("/api/card/<int:card_id>", methods=["GET"])
 def get_card(card_id):
-    user = User.query.get(1)
 
-    if len(user.today()) == 0:
+    if len(current_user.today()) == 0:
         return None
 
-    card = user.get_card(card_id)
+    card = current_user.get_card(card_id)
     return jsonify(card.card_dict)
 
 @app.route("/api/next", methods=["GET"])
 def get_next():
-    user = User.query.get(1)
 
-    if len(user.today()) > 0:
-        card = choice(user.today()).card_dict
+    if len(current_user.today()) > 0:
+        card = choice(current_user.today()).card_dict
     else:
         card = {'id': None}
     return jsonify({
         'card': card,
-        'cards_remaining': len(user.today()),
+        'cards_remaining': len(current_user.today()),
     })
 
 @app.route("/api/methods", methods=["POST"])
@@ -55,39 +99,33 @@ def get_methods():
 
 @app.route("/api/card/<int:card_id>", methods=["POST"])
 def report_result(card_id):
-    user = User.query.get(1) # use the default user for testing purposes
 
     faults = request.json['faults']
     print("{} faults reported".format(faults))
 
-    user.mark_card(card_id, faults)
+    current_user.mark_card(card_id, faults)
     return jsonify({'result': 'ok'})
 
 @app.route("/api/cards", methods=['GET'])
 def get_all_cards():
-    user = User.query.get(1)
 
-    all_cards = [c.card_meta for c in user.cards]
+    all_cards = [c.card_meta for c in current_user.cards]
     return jsonify(all_cards)
 
 @app.route("/api/user/methods", methods=['GET'])
 def get_user_methods():
-    user = User.query.get(1)
-    return jsonify(user.methods)
+    return jsonify(current_user.methods)
 
 @app.route("/api/user/methods", methods=['POST'])
 def add_user_method():
-    user = User.query.get(1)
     method_name = request.json['method_name']
     print('Adding method: ', method_name)
-    user.add_method(method_name)
+    current_user.add_method(method_name)
 
     return jsonify({'result': 'ok'})
 
 @app.route("/api/user/methods", methods=['DELETE'])
 def delete_user_method():
-    user = User.query.get(1)
     method_name = request.json['method_name']
-    user.remove_method(method_name)
-    return 'good'
-
+    current_user.remove_method(method_name)
+    return jsonify({'result': 'ok'})

@@ -18,6 +18,10 @@
     httpDel('user/methods',event.detail).then(()=>refresh());
   }
 
+  async function logout(){
+    post('logout').then((resp) => window.location.href="/");
+  }
+
   let cards_promise = getCardList();
   let methods_promise = getMethodList();
 
@@ -36,10 +40,10 @@
   let method_headers = {
     method: 'Method',
     total: 'Total',
-    new: 'New',
   }
 
   let modal_overflow = true;
+
 
 </script>
 
@@ -95,7 +99,7 @@
           </div>
 
           <div class="tab-pane fade" id="tabpanel-settings" role="tabpanel" aria-labelledby="tab-settings">
-            settings
+            <button class="btn btn-danger" on:click={logout}>Logout</button>
           </div>
         </div>
 

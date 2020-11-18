@@ -5,8 +5,14 @@ from datetime import date, timedelta
 from flask_login import UserMixin
 
 
+@login.user_loader
+def load_user(id):
+    return User.query.get(id)
+
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(32))
     cards = db.relationship("Card", back_populates="user")
 
     def add_method(self, method_name):
@@ -60,13 +66,9 @@ class User(UserMixin, db.Model):
         for method in methods:
             total = len([card for card in self.cards
                          if card.method.title == method])
-            new = len([card for card in self.cards
-                       if card.method.title == method
-                       and len(card.reviews) == 0])
             method_stats.append({
                 'method': method,
                 'total': total,
-                'new': new,
             })
         return method_stats
 
