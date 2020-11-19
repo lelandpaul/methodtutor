@@ -26,6 +26,7 @@ def login():
 @app.route("/api/login", methods=["POST"])
 def api_login():
     email, password = request.json['email'], request.json['password']
+    remember = request.json['remember']
     print('received:', email, password)
 
     resp = requests.post('https://ringingroom.com/api/tokens',
@@ -47,7 +48,7 @@ def api_login():
 
     print('u', u)
 
-    login_user(u)
+    login_user(u, remember=remember)
 
     print('logged in:', current_user.id)
 
