@@ -47,6 +47,7 @@
   $: if (window_width > 992) { show_sidebar = true };
   $: if (window_width < 992) { show_sidebar = false };
 
+
 </script>
 
 <style>
@@ -98,5 +99,6 @@
   {/if}
 
   <CardManager/>
+
 
 </div>

@@ -39,15 +39,9 @@
     <circle cx="{calcH(bumper_mode ? blueline[cur_row] : free_blueline[cur_row])}" cy="{calcV(cur_row)}"
             r="8" fill="{line_color}" class="blueline"/>
 
-    {#each Array(cur_row) as _, i}
-      <line x1="{calcH(bumper_mode ? blueline[i] : free_blueline[i])}" y1="{calcV(i)}"
-            x2="{calcH(bumper_mode ? blueline[i+1] : free_blueline[i+1])}" y2="{calcV(i+1)}"
-            stroke="{line_color}" 
-            stroke-width="4" 
-            stroke-linecap="round" 
-            class="blueline"
-          />
-    {/each}
+    <path fill="transparent" stroke="{line_color}" stroke-width="4" stroke-linecap="round"
+      transition:draw={{duration: 400}}
+      d="{getPathString(cur_row, bumper_mode ? blueline : free_blueline)}"/>
 
   {/if}
 
@@ -56,14 +50,9 @@
     <circle cx="{calcH(treble_path[cur_row])}" cy="{calcV(cur_row)}"
             r="5" fill="red" class="treble"/>
 
-      {#each Array(cur_row) as _, i}
-
-        <line x1="{calcH(treble_path[i])}" y1="{calcV(i)}"
-              x2="{calcH(treble_path[i+1])}" y2="{calcV(i+1)}"
-              stroke="red"
-              stroke-width="2"
-              stroke-linecap="round" class="treble"/>
-      {/each}
+    <path fill="transparent" stroke="red" stroke-width="2" stroke-linecap="round"
+      transition:draw
+      d="{getPathString(cur_row, treble_path)}"/>
 
   {/if}
 
@@ -113,7 +102,7 @@
 <script>
 
   import { sineInOut } from 'svelte/easing';
-  import { fade } from 'svelte/transition';
+  import { fade, draw } from 'svelte/transition';
   import { createEventDispatcher } from 'svelte';
   import { card_complete, cards_today, mistakes } from './stores.js';
   import { bellName } from './helpers.js';
@@ -162,6 +151,14 @@
   function calcV(row) {
     var row_height = (canvas_height - 2*vertical_offset) / lead_length;
     return row * row_height + vertical_offset
+  }
+
+  function getPathString(row, positions){
+    let path_string = "M" + calcH(positions[0]) + ' ' + calcV(0)
+    for (let i = 1; i <= row; i++){
+      path_string += 'L' + calcH(positions[i]) + ' ' + calcV(i)
+    }
+    return path_string
   }
 
   function resetAll() {
