@@ -19,8 +19,8 @@ let dispatch = createEventDispatcher()
   <div id="touchHandler" class="fixed-bottom row no-gutter mb-3">
 
     {#if $card_complete}
-      <div class="col-12 text-center" on:touchstart|preventDefault="{e=>dispatch('done')}">
-        <button class="btn btn-outline-secondary">Next</button>
+      <div class="col-12 text-center bigger" on:touchstart|preventDefault="{e=>dispatch('done')}">
+        <i class="fas fa-long-arrow-alt-right"></i>
       </div>
     {:else}
       <div class="col-4 text-left" on:touchstart|preventDefault="{e=>dispatch('touch', {dir: -1})}">

@@ -58,9 +58,7 @@
     margin: auto;
     height: 30px;
   }
-  .widen {
-    transform: scaleX(2.5);
-  }
+
 </style>
 
 <svelte:window bind:innerWidth={window_width}/>
@@ -82,7 +80,9 @@
               id="opener"
               style="width: {Math.min(400, window_width - 25)}px"
               on:click|preventDefault={()=>show_sidebar=!show_sidebar}>
-              <span class="widen">{show_sidebar ? '▲' : '▼' }</span>
+              <i class="fas"
+                 class:fa-chevron-up={show_sidebar}
+                 class:fa-chevron-down={!show_sidebar}></i>
       </button>
 
     </div>
