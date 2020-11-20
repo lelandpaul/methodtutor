@@ -1,9 +1,16 @@
 <svelte:window bind:innerWidth={innerWidth} bind:innerHeight={innerHeight}
                on:keydown={keyDownHandler} on:keyup={keyUpHandler}/>
 
+
+{#if detectMob()}
+  <TouchHandler on:touch={(e)=>handleInput(e.detail.dir)}
+                on:done={(e)=>{resetAll(); dispatch('done')}}/>
+{/if}
+
 {#if innerWidth}
 
 <Card method={method} bell={place_bell} width={canvas_width} small={cardtext_small}/>
+
 
 <svg xmlns="http://www.w3.org/2000/svg" 
     class:bumper_mode
@@ -40,7 +47,6 @@
             r="8" fill="{line_color}" class="blueline"/>
 
     <path fill="transparent" stroke="{line_color}" stroke-width="4" stroke-linecap="round"
-      transition:draw={{duration: 400}}
       d="{getPathString(cur_row, bumper_mode ? blueline : free_blueline)}"/>
 
   {/if}
@@ -51,7 +57,6 @@
             r="5" fill="red" class="treble"/>
 
     <path fill="transparent" stroke="red" stroke-width="2" stroke-linecap="round"
-      transition:draw
       d="{getPathString(cur_row, treble_path)}"/>
 
   {/if}
@@ -102,12 +107,12 @@
 <script>
 
   import { sineInOut } from 'svelte/easing';
-  import { fade, draw } from 'svelte/transition';
-  import { createEventDispatcher } from 'svelte';
+  import { fade } from 'svelte/transition';
+  import { onMount, createEventDispatcher } from 'svelte';
   import { card_complete, cards_today, mistakes } from './stores.js';
-  import { bellName } from './helpers.js';
+  import { bellName, detectMob } from './helpers.js';
   import Card from './Card.svelte';
-  import { onMount } from 'svelte';
+  import TouchHandler from './TouchHandler.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -226,17 +231,25 @@
       reportResults()
   }
 
+  function handleInput(dir){
+    if ($card_complete){
+      return;
+    }
+    if (bumper_mode) { updateBumper(dir) }
+    else { updateFree(dir) };
+  }
+
   function keyDownHandler(e) {
     if (debounce) { return }
     switch(e.key) {
       case "ArrowLeft":
-        input_dir = -1;
+        handleInput(-1)
         break;
       case "ArrowDown":
-        input_dir = 0;
+        handleInput(0)
         break;
       case "ArrowRight":
-        input_dir = 1;
+        handleInput(1)
         break;
       case "Escape":
         resetAll()
@@ -259,13 +272,6 @@
         return;
         break;
     }
-    if ($card_complete) { 
-      return;
-    };
-
-    if (bumper_mode) { updateBumper(input_dir) }
-    else { updateFree(input_dir) };
-
   }
 
   function keyUpHandler(e) {

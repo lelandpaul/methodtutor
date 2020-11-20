@@ -44,8 +44,10 @@
 
   let show_sidebar = false;
   let window_width;
-  $: if (window_width > 992) { show_sidebar = true };
-  $: if (window_width < 992) { show_sidebar = false };
+  let no_cards_left = false;
+  $: if (cur_card) { no_cards_left = cur_card.id == null }
+  $: if (window_width > 992 || no_cards_left) { show_sidebar = true };
+  $: if (window_width < 992 && !no_cards_left) { show_sidebar = false };
 
 
 </script>
@@ -85,16 +87,18 @@
 
     </div>
 
+    {#if cur_card.id}
     <div class="col-12 col-lg-5 text-center">
 
-      <MethodDisplay {...cur_card} {cards_shown} 
-        on:trigger_bumper={()=>{cur_card.bumper_mode = true;}}
-        on:report_results={(e)=>postResults(cur_card.id, e.detail)}
-        on:done={getStatus}/>
 
+        <MethodDisplay {...cur_card} {cards_shown} 
+          on:trigger_bumper={()=>{cur_card.bumper_mode = true;}}
+          on:report_results={(e)=>postResults(cur_card.id, e.detail)}
+          on:done={getStatus}/>
 
+    </div>
 
-  </div>
+      {/if}
 
   {/if}
 
