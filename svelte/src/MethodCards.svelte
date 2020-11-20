@@ -1,5 +1,7 @@
 <script>
   import { onMount } from 'svelte';
+  import { slide } from 'svelte/transition';
+  import { flip } from 'svelte/animate';
   import MethodDisplay from './MethodDisplay.svelte';
   import Card from './Card.svelte';
   import Metadata from './Metadata.svelte';
@@ -40,21 +42,49 @@
 
   });
 
+  let show_sidebar = false;
+  let window_width;
+  $: if (window_width > 992) { show_sidebar = true };
+  $: if (window_width < 992) { show_sidebar = false };
 
 </script>
 
-<div class="row pt-4">
+<style>
+  #opener {
+    width: 100%;
+    margin: auto;
+    height: 30px;
+  }
+  .widen {
+    transform: scaleX(2.5);
+  }
+</style>
+
+<svelte:window bind:innerWidth={window_width}/>
+
+<div class="row pt-4 justify-content-center">
 
   {#if cur_card}
 
-    <div class="col-5">
-      <Metadata bumper_mode={cur_card.bumper_mode}/>
+    <div class="col-12 col-lg-5">
+
+
+      {#if show_sidebar}
+        <div transition:slide>
+          <Metadata bumper_mode={cur_card.bumper_mode}/>
+        </div>
+      {/if}
+
+      <button class="d-lg-none d-block mb-2 p-0 btn btn-outline-secondary"
+              id="opener"
+              style="width: {Math.min(400, window_width - 25)}px"
+              on:click|preventDefault={()=>show_sidebar=!show_sidebar}>
+              <span class="widen">{show_sidebar ? '▲' : '▼' }</span>
+      </button>
+
     </div>
 
-    <div class="col-5">
-
-
-      <Card method={cur_card.method} bell={cur_card.place_bell}/>
+    <div class="col-12 col-lg-5 text-center">
 
       <MethodDisplay {...cur_card} {cards_shown} 
         on:trigger_bumper={()=>{cur_card.bumper_mode = true;}}

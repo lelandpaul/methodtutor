@@ -1,11 +1,14 @@
-<svelte:window on:keydown={keyDownHandler} on:keyup={keyUpHandler}/>
+<svelte:window bind:innerWidth={innerWidth} bind:innerHeight={innerHeight}
+               on:keydown={keyDownHandler} on:keyup={keyUpHandler}/>
 
+{#if innerWidth}
+
+<Card method={method} bell={place_bell} width={canvas_width} small={cardtext_small}/>
 
 <svg xmlns="http://www.w3.org/2000/svg" 
     class:bumper_mode
     style="width:{canvas_width};
-    height: {canvas_height};
-    "
+           height: {canvas_height};"
           viewBox="0 0 {canvas_width} {canvas_height}"
         >
   {#each Array(stage-1) as _, i}
@@ -82,6 +85,7 @@
   {/if}
 
 </svg>
+{/if}
 
 <style>
 
@@ -113,6 +117,8 @@
   import { createEventDispatcher } from 'svelte';
   import { card_complete, cards_today, mistakes } from './stores.js';
   import { bellName } from './helpers.js';
+  import Card from './Card.svelte';
+  import { onMount } from 'svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -128,10 +134,16 @@
 
   let debounce = false;
   let input_dir;
-  let canvas_width = 400;
-  let canvas_height = 900;
   let mistake;
   let free_blueline = [place_bell];
+
+  let innerWidth;
+  let innerHeight;
+  $: canvas_width = Math.min(400, innerWidth - 25);
+  $: canvas_height = Math.min(900,innerHeight - 150);
+
+  let cardtext_small = false;
+  $: cardtext_small = canvas_width < 400;
 
   var treble_pos = 1
   var cur_row = 0;

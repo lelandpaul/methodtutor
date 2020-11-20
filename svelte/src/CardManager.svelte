@@ -57,7 +57,7 @@
 <div class="modal fade" tabindex="-1" id="cardManager" class:overflow-visible="{modal_overflow}">
   <div class="modal-dialog modal-dialog-scrollable modal-xl" class:overflow-visible="{modal_overflow}">
     <div class="modal-content" class:overflow-visible="{modal_overflow}">
-      <div class="modal-header">
+      <div class="modal-header border-bottom-0">
 
         <h3 class="modal-title">Method Tutor </h3>
 

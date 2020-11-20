@@ -33,7 +33,7 @@
 
 </script>
 
-<form id="addMethodForm" class="form" on:submit|preventDefault={addMethod}>
+<form id="addMethodForm" class="form mt-5" on:submit|preventDefault={addMethod}>
 
     <AutoComplete searchFunction={getMethods} 
                   labelFieldName="method_name"

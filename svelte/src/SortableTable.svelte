@@ -94,13 +94,17 @@
   opacity: 0;
 }
 
+.clickable {
+  cursor: pointer;
+}
+
 </style>
 
-<table class="table table-sm table-striped">
+<table class="table table-sm table-striped border-bottom">
   <thead>
     <tr>
       {#each Object.entries(headers) as [prop, header] (prop)}
-      <th scope="col" class="text-left" on:click={sort(prop)}>
+      <th scope="col" class="text-left clickable" on:click={sort(prop)}>
         {header}
         <span class:hide="{sortBy.col!==prop}">{ sortBy.ascending ? '▲' : '▼' }</span>
       </th>
@@ -111,6 +115,13 @@
       {/if}
     </tr>
   </thead>
+  {#if data.length == 0}
+    <tr>
+      <td colspan="42">
+        <small class="text-muted">(no methods added)</small>
+      </td>
+    </tr>
+  {/if}
   <tbody>
       {#each data as card}
         <tr>
