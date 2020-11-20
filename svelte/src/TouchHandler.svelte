@@ -4,37 +4,26 @@ import { createEventDispatcher } from 'svelte';
 import { card_complete } from './stores.js';
 
 let dispatch = createEventDispatcher()
+export let width;
+
+function handleTouch(e){
+  if (e.layerY < 200) { return }
+  if (e.touches.length > 1) { return }
+  if ($card_complete) { dispatch('done') }
+  if (e.layerX < (width/3) - 20) {
+    dispatch('touch', {dir: -1});
+  } else if (e.layerX < (2*width/3) + 20){
+    dispatch('touch', {dir: 0});
+  } else {
+    dispatch('touch', {dir: 1});
+  }
+}
 
 </script>
 
 <style>
 
-  i {
-    opacity: 0.3;
-    font-size: 5rem;
-  }
-
 </style>
 
-  <div id="touchHandler" class="fixed-bottom row no-gutter mb-3">
-
-    {#if $card_complete}
-      <div class="col-12 text-center bigger" on:touchstart|preventDefault="{e=>dispatch('done')}">
-        <i class="fas fa-long-arrow-alt-right"></i>
-      </div>
-    {:else}
-      <div class="col-4 text-left" on:touchstart|preventDefault="{e=>dispatch('touch', {dir: -1})}">
-        <i class="fas fa-arrow-circle-left"></i>
-      </div>
-
-      <div class="col-4 text-center" on:touchstart|preventDefault="{e=>dispatch('touch', {dir: 0})}">
-        <i class="fas fa-arrow-circle-down"></i>
-      </div>
-
-      <div class="col-4 text-right" on:touchstart|preventDefault="{e=>dispatch('touch', {dir: 1})}">
-        <i class="fas fa-arrow-circle-right"></i>
-      </div>
-    {/if}
-
-  </div>
+<svelte:window on:touchstart|preventDefault="{(e)=>handleTouch(e)}"/>
 

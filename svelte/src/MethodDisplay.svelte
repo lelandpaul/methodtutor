@@ -2,11 +2,6 @@
                on:keydown={keyDownHandler} on:keyup={keyUpHandler}/>
 
 
-{#if detectMob()}
-  <TouchHandler on:touch={(e)=>handleInput(e.detail.dir)}
-                on:done={(e)=>{resetAll(); dispatch('done')}}/>
-{/if}
-
 {#if innerWidth}
 
 <Card method={method} bell={place_bell} width={canvas_width} small={cardtext_small}/>
@@ -81,6 +76,24 @@
 </svg>
 {/if}
 
+{#if detectMob()}
+  <TouchHandler width={innerWidth}
+                on:touch={(e)=>handleInput(e.detail.dir)}
+                on:done={(e)=>{resetAll(); dispatch('done')}}/>
+
+<div class="row">
+  <div class="col">
+    <i id="leftArrow" class="fas fa-arrow-alt-circle-left"></i>
+  </div>
+  <div class="col">
+    <i id="downArrow" class="fas fa-arrow-alt-circle-down"></i>
+  </div>
+  <div class="col">
+    <i id="rightArrow" class="fas fa-arrow-alt-circle-right"></i>
+  </div>
+</div>
+{/if}
+
 <style>
 
   svg {
@@ -97,6 +110,19 @@
 
   :global(body) {
     background: #d3d1dc;
+  }
+
+  .row {
+    padding-top: 3px;
+    font-size: 1.25rem;
+  }
+
+  #leftArrow {
+    transform: rotate(-45deg);
+  }
+
+  #rightArrow {
+    transform: rotate(45deg);
   }
 
 
@@ -207,7 +233,7 @@
   }
 
   function updateBumper(dir){
-    if (blueline[cur_row] + input_dir == blueline[cur_row+1]){
+    if (blueline[cur_row] + dir == blueline[cur_row+1]){
       cur_row += 1;
     } else {
       mistake = true;
@@ -234,6 +260,20 @@
   function handleInput(dir){
     if ($card_complete){
       return;
+    }
+    let el;
+    if (detectMob()) {
+      switch(dir){
+        case -1:
+          el = document.getElementById('leftArrow')
+          break;
+        case 0:
+          el = document.getElementById('downArrow')
+        case 1:
+          el = document.getElementById('rightArrow')
+      } 
+      el.style.color = 'red';
+      setTimeout(()=>el.style.color = 'black', 100);
     }
     if (bumper_mode) { updateBumper(dir) }
     else { updateFree(dir) };

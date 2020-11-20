@@ -53,6 +53,7 @@
 </script>
 
 <style>
+
   #opener {
     width: 100%;
     margin: auto;
@@ -67,7 +68,7 @@
 
   {#if cur_card}
 
-    <div class="col-12 col-lg-5">
+    <div class="col-12 col-lg-6">
 
 
       {#if show_sidebar}
@@ -88,7 +89,7 @@
     </div>
 
     {#if cur_card.id}
-    <div class="col-12 col-lg-5 text-center">
+    <div class="col-12 col-lg-3 text-center">
 
 
         <MethodDisplay {...cur_card} {cards_shown} 
