@@ -38,27 +38,41 @@
     left: -5px;
   }
 
-  #settings-lg {
-    top: 1.4rem;
-    left: 1.25rem;
+  a {
+    color: black;
+  }
+
+  a:hover {
+    color: var(--blue);
+    text-decoration: none;
   }
 
 </style>
 
 <div class="card mb-2">
-  <div class="card-body p-0 text-center">
+  <div class="card-body py-0">
 
 
-    <h4 class="d-lg-inline-block position-absolute" id="settings-lg">
-      <i class="fas fa-cog" data-toggle="modal" data-target="#cardManager"></i> 
-    </h4>
-
-    <h3 class="card-title mt-3 mb-3 d-inline-block">
+    <h3 class="card-title mt-3 mb-3">
       Method Tutor
     </h3>
+
   </div>
 
   <ul class="list-group list-group-flush">
+
+    <li class="list-group-item list-group-item-action px-3 pt-3 p-lg-4">
+
+      <h6> 
+        <a href="#" data-toggle="modal" data-target="#cardManager">
+          <i class="fas fa-cog"></i>
+          Settings
+        </a>
+      </h6>
+
+    </li>
+
+
     <li class="list-group-item p-3 p-lg-4">
       Cards remaining:<span class="float-right">{$cards_today}</span>
     </li>

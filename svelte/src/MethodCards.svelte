@@ -46,8 +46,8 @@
   let window_width;
   let no_cards_left = false;
   $: if (cur_card) { no_cards_left = cur_card.id == null }
-  $: if (window_width > 992 || no_cards_left) { show_sidebar = true };
-  $: if (window_width < 992 && !no_cards_left) { show_sidebar = false };
+  $: if (window_width > 768 || no_cards_left) { show_sidebar = true };
+  $: if (window_width < 768 && !no_cards_left) { show_sidebar = false };
 
 
 </script>
@@ -64,11 +64,11 @@
 
 <svelte:window bind:innerWidth={window_width}/>
 
-<div class="row pt-4 justify-content-center">
+<div class="row pt-4 justify-content-center justify-content-md-start">
 
   {#if cur_card}
 
-    <div class="col-12 col-lg-6">
+    <div class="col-12 col-md-4">
 
 
       {#if show_sidebar}
@@ -77,7 +77,7 @@
         </div>
       {/if}
 
-      <button class="d-lg-none d-block mb-2 p-0 btn btn-outline-secondary"
+      <button class="d-md-none d-block mb-2 p-0 btn btn-outline-secondary"
               id="opener"
               style="width: {Math.min(400, window_width - 25)}px"
               on:click|preventDefault={()=>show_sidebar=!show_sidebar}>
@@ -89,7 +89,7 @@
     </div>
 
     {#if cur_card.id}
-    <div class="col-12 col-lg-3 text-center">
+    <div class="col-12 col-md-3 text-center">
 
 
         <MethodDisplay {...cur_card} {cards_shown} 

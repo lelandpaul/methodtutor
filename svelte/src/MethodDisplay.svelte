@@ -242,6 +242,11 @@
   }
 
   function updateFree(dir) {
+    if (cur_pos + dir == treble_path[cur_row+1]) { 
+      mistake = true;
+      setTimeout(()=>{mistake = false;},100);
+      return
+    }
     if (cur_pos == 1 && dir == -1) {
       return;
     }
