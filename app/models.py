@@ -14,6 +14,11 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(32))
     cards = db.relationship("Card", back_populates="user")
+    unlimited_reviews = db.Column(db.Boolean, default=True)
+    unlimited_new = db.Column(db.Boolean, default=False)
+    max_reviews = db.Column(db.Integer, default=20)
+    max_new = db.Column(db.Integer, default=2)
+
 
     def add_method(self, method_name):
         if method_name in [m['method'] for m in self.methods]:

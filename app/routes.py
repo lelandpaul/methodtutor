@@ -15,7 +15,8 @@ def svelte_client(path):
 @app.route("/")
 @login_required
 def index():
-    return render_template('methodcards.html')
+    return render_template('methodcards.html',
+                           user_email=current_user.email)
 
 @app.route("/login", methods=["GET"])
 def login():
@@ -130,3 +131,24 @@ def delete_user_method():
     method_name = request.json['method_name']
     current_user.remove_method(method_name)
     return jsonify({'result': 'ok'})
+
+@app.route("/api/user/settings", methods=["GET"])
+def get_user_settings():
+    response = {
+        'max_reviews': current_user.max_reviews,
+        'max_new': current_user.max_new,
+        'unlimited_reviews': current_user.unlimited_reviews,
+        'unlimited_new': current_user.unlimited_new,
+    }
+    return jsonify(response)
+
+@app.route("/api/user/settings", methods=["POST"])
+def post_user_settings():
+    print('Got settings:', request.json)
+    current_user.max_reviews = request.json['max_reviews']
+    current_user.max_new = request.json['max_new']
+    current_user.unlimited_reviews = request.json['unlimited_reviews']
+    current_user.unlimited_new = request.json['unlimited_new']
+    db.session.commit()
+    return jsonify({'result': 'ok'})
+

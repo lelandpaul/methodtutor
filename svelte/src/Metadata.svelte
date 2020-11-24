@@ -61,7 +61,7 @@
 
   <ul class="list-group list-group-flush">
 
-    <li class="list-group-item list-group-item-action px-3 pt-3 p-lg-4">
+    <li class="list-group-item list-group-item-action px-3 pt-3 mb-n1">
 
       <h6> 
         <a href="#" data-toggle="modal" data-target="#cardManager">
