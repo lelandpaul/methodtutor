@@ -143,7 +143,7 @@
 
                 <div class="col-12 col-lg-5">
 
-                  <label for="user_email" class="pr-5 font-weight-bold">
+                  <label for="user_email" class="pr-5 mb-0 mt-1 font-weight-bold">
                     Currently logged in as:
                   </label>
 
@@ -164,13 +164,19 @@
 
                 </div>
 
+                <div class="col-12">
+                  <small class="form-text text-muted">
+                    You can change your password on <a href="https://ringingroom.co.uk">Ringing Room</a>.
+                  </small>
+                </div>
+
               </div>
 
 
               <div class="form-row mb-4">
 
 
-                <div class="col-12 col-lg-5">
+                <div class="col-12 col-lg-5 mb-0 mt-1">
 
                   <label for="maxReviews" class="pr-5 font-weight-bold">
                     Maximum reviews per day:
@@ -204,12 +210,19 @@
 
                 </div>
 
+                <div class="col-12">
+                  <small class="form-text text-muted">
+                    This is the maximum number of unique cards you'll review in a day. (Default: unlimited)
+                  </small>
+                </div>
+
+
               </div>
 
               <div class="form-row mb-4">
 
 
-                <div class="col-12 col-lg-5">
+                <div class="col-12 col-lg-5 mb-0 mt-1">
 
                   <label for="maxNew" class="pr-5 font-weight-bold">
                     Maximum new cards per day:
@@ -242,6 +255,14 @@
                   </div>
 
                 </div>
+
+                <div class="col-12">
+                  <small class="form-text text-muted">
+                    This is the maximum number of new cards that will be shown to you on a given day. (Default: 2)
+                  </small>
+                </div>
+
+
 
               </div>
 
