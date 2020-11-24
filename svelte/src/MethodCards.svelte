@@ -50,6 +50,7 @@
   $: if (window_width < 768 && !no_cards_left) { show_sidebar = false };
 
 
+
 </script>
 
 <style>
@@ -59,6 +60,7 @@
     margin: auto;
     height: 30px;
   }
+
 
 </style>
 
@@ -89,17 +91,27 @@
     </div>
 
     {#if cur_card.id}
-    <div class="col-12 col-md-3 text-center">
+
+      <div class="col-12 col-md-3 text-center">
 
 
-        <MethodDisplay {...cur_card} {cards_shown} 
-          on:trigger_bumper={()=>{cur_card.bumper_mode = true;}}
-          on:report_results={(e)=>postResults(cur_card.id, e.detail)}
-          on:done={getStatus}/>
+          <MethodDisplay {...cur_card} {cards_shown} 
+            on:trigger_bumper={()=>{cur_card.bumper_mode = true;}}
+            on:report_results={(e)=>postResults(cur_card.id, e.detail)}
+            on:done={getStatus}/>
 
-    </div>
+      </div>
 
-      {/if}
+    {:else}
+
+      <h4 >
+        (No more cards today!)
+      </h4>
+
+
+    {/if}
+
+
 
   {/if}
 
