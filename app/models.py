@@ -188,34 +188,19 @@ class Event(db.Model):
 
 def schedule_card(card, faults=0):
 
-    # If the card is brand-new, schedule it for today but don't make an event
-    if card.is_new():
-        card.scheduled = date.today()
-        db.session.commit()
-
-    # Unmark the card:
-    card.on_deck = False
-
     # Create an event for the card
     e = Event(card=card, date=date.today(), last_interval=int(card.interval))
     db.session.add(e)
 
-    # Second case: The card is in learn mode, so just follow the sequence
-    # Also take it out of bumper mode
-    if card.learn_mode < 4:
-        print('Scheduled {}: Learn case'.format(card.id))
-        interval = [1,1,2,2][card.learn_mode]
-        card.learn_mode += 1 # Advance to the next stage
-        card.scheduled = date.today() + timedelta(days=interval)
-        card.bumper_mode = False
-        print('...scheduled for {}'.format(card.scheduled))
-        db.session.commit()
-        return card
-
-    # Third case: Relearn
+    # Redo case: The card went poorly, so review it again today
     if faults >= 5:
-        print('Scheduled {}: Relearn case'.format(card.id))
-        card.learn_mode = 0 # Reset to learning mode
+        print('Scheduled {}: Redo case'.format(card.id))
+        if card.learn_mode >= 4:
+            # Relearn: the card was out of learn, so start over
+            card.learn_mode = 0 # Reset to learning mode
+        else:
+            # Advance learn mode
+            card.learn_mode += 1
         card.ease = max(1.3, card.ease - 0.2) # decrease ease w/ minimum
         card.interval = min(7.0, card.interval) # decrease interval
         card.scheduled = date.today() # review it again today
@@ -224,7 +209,30 @@ def schedule_card(card, faults=0):
         db.session.commit()
         return card
 
-    # Fourth case: Bad
+    # New bumper case: If the card is in learn mode and in bumper,
+    # Do it again today before advancing the schedule
+    if card.learn_mode < 4 and card.bumper_mode:
+        print('Scheduled {}: Bumper case'.format(card.id))
+        card.bumper_mode = False
+        card.scheduled = date.today()
+        print('...scheduled for {}'.format(card.scheduled))
+        db.session.commit()
+        return card
+
+    # We're not doing the card again today, so we can unmark it
+    card.on_deck = False
+
+    # Learn case: The card is in learn mode, so just follow the sequence
+    if card.learn_mode < 4:
+        print('Scheduled {}: Learn case'.format(card.id))
+        interval = [1,1,2,2][card.learn_mode]
+        card.learn_mode += 1 # Advance to the next stage
+        card.scheduled = date.today() + timedelta(days=interval)
+        print('...scheduled for {}'.format(card.scheduled))
+        db.session.commit()
+        return card
+
+    # Bad case
     if faults >= 3:
         print('Scheduled {}: Bad case'.format(card.id))
         card.ease = max(1.3, card.ease - 0.15) # decrease ease w/ minimum
@@ -233,7 +241,7 @@ def schedule_card(card, faults=0):
         db.session.commit()
         return card
 
-    # Fifth case: Good
+    # Good case
     if faults >= 1:
         print('Scheduled {}: Good case'.format(card.id))
         # Ease unchanged
@@ -243,7 +251,7 @@ def schedule_card(card, faults=0):
         db.session.commit()
         return card
 
-    # Sixth case: Easy
+    # Easy case
     print('Scheduled {}: Easy case'.format(card.id))
     card.ease += 0.1
     card.interval *= card.ease
@@ -251,4 +259,3 @@ def schedule_card(card, faults=0):
     print('...scheduled for {}'.format(card.scheduled))
     db.session.commit()
     return card
-
