@@ -7,7 +7,7 @@ def make_shell_context():
             'User': User,
             'Card': Card,
             'Event': Event,
-            'u': User.query.get(1)}
+            'u': User.query.get(2)}
 
 if __name__ == '__main__':
     app.run()

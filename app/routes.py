@@ -76,6 +76,8 @@ def get_card(card_id):
 @app.route("/api/next", methods=["GET"])
 def get_next():
 
+    print('Today: ', current_user.today())
+
     if len(current_user.today()) > 0:
         card = choice(current_user.today()).card_dict
     else:

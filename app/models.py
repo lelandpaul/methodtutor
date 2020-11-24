@@ -3,6 +3,8 @@ from app.methods import make_path
 import cccbr_methods
 from datetime import date, timedelta
 from flask_login import UserMixin
+from itertools import chain
+from random import shuffle
 
 
 @login.user_loader
@@ -40,7 +42,29 @@ class User(UserMixin, db.Model):
         db.session.commit()
 
     def today(self):
-        return [c for c in self.cards if c.scheduled <= date.today()]
+        if self.reviews_today == 0:
+            # We haven't done anything yet today
+            # (or are pretending so)
+            # So mark some cards to study
+            self.choose_cards()
+        return [c for c in self.cards if c.on_deck]
+
+    def choose_cards(self):
+        for card in self.cards:
+            card.on_deck = False
+        reviews = [c for c in self.cards
+                   if not c.is_new() and c.scheduled <= date.today()]
+        if not self.unlimited_reviews:
+            shuffle(reviews)
+            reviews = reviews[:self.max_reviews]
+        new = [c for c in self.cards if c.is_new()]
+        if not self.unlimited_new:
+            new = sorted(new, key=lambda x: (x.method_name, x.place_bell))
+            new = new[:self.max_new]
+        for card in chain(reviews, new):
+            card.on_deck = True
+        db.session.commit()
+        return len([c for c in self.cards if c.on_deck])
 
     def get_card(self, card_id):
         for card in self.cards:
@@ -65,6 +89,15 @@ class User(UserMixin, db.Model):
         return len(self.today())
 
     @property
+    def events(self):
+        return chain(*[card.reviews for card in self.cards])
+
+    @property
+    def reviews_today(self):
+        return len([e for e in self.events if e.date == date.today()])
+
+
+    @property
     def methods(self):
         methods = {card.method.title for card in self.cards}
         method_stats = []
@@ -85,6 +118,8 @@ class Card(db.Model):
     place_bell = db.Column(db.Integer)
     fk_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship("User", back_populates="cards")
+
+    on_deck = db.Column(db.Boolean, default=False)
 
     ease = db.Column(db.Float, default=1.2)
     interval = db.Column(db.Float, default=1.0)
@@ -119,6 +154,7 @@ class Card(db.Model):
         }
         return card
 
+
     @property
     def card_meta(self):
         meta = {
@@ -134,7 +170,13 @@ class Card(db.Model):
         self.interval = 1.0
         self.scheduled = date.today()
         self.learn_mode = 0
+        self.on_deck = False
+        for e in self.reviews:
+            db.session.delete(e)
+        db.session.commit()
 
+    def is_new(self):
+        return len(self.reviews) == 0
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -146,14 +188,15 @@ class Event(db.Model):
 
 def schedule_card(card, faults=0):
 
-    # First case: If the card is brand new, schedule it for today.
-    if card.scheduled is None:
-        print('Scheduled {}: New case'.format(card.id))
+    # If the card is brand-new, schedule it for today but don't make an event
+    if card.is_new():
         card.scheduled = date.today()
         db.session.commit()
-        return card
 
-    # If the card isn't brand-new, we need to create an event for it
+    # Unmark the card:
+    card.on_deck = False
+
+    # Create an event for the card
     e = Event(card=card, date=date.today(), last_interval=int(card.interval))
     db.session.add(e)
 
