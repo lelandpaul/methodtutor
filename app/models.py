@@ -30,7 +30,6 @@ class User(UserMixin, db.Model):
             c = Card(method_name = method.title,
                      place_bell = i,
                      user = self)
-            schedule_card(c)
             db.session.add(c)
         db.session.commit()
         return True
