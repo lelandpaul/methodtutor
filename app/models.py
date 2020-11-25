@@ -7,6 +7,7 @@ from itertools import chain
 from random import shuffle
 
 
+
 @login.user_loader
 def load_user(id):
     return User.query.get(id)
@@ -31,7 +32,8 @@ class User(UserMixin, db.Model):
                      place_bell = i,
                      user = self)
             db.session.add(c)
-        db.session.commit()
+            db.session.commit()
+            schedule_card(c)
         return True
 
     def remove_method(self, method_name):

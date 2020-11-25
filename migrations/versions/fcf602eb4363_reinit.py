@@ -1,12 +1,13 @@
 """reinit
 
 Revision ID: fcf602eb4363
-Revises: 
+Revises:
 Create Date: 2020-11-12 16:19:41.319000
 
 """
 from alembic import op
 import sqlalchemy as sa
+from datetime import date
 
 
 # revision identifiers, used by Alembic.
@@ -27,10 +28,10 @@ def upgrade():
     sa.Column('method_name', sa.String(), nullable=True),
     sa.Column('place_bell', sa.Integer(), nullable=True),
     sa.Column('fk_user_id', sa.Integer(), nullable=True),
-    sa.Column('ease', sa.Float(), nullable=True),
-    sa.Column('interval', sa.Float(), nullable=True),
-    sa.Column('scheduled', sa.Date(), nullable=True),
-    sa.Column('learn_mode', sa.Integer(), nullable=True),
+    sa.Column('ease', sa.Float(), default=1.2),
+    sa.Column('interval', sa.Float(), default=1.0),
+    sa.Column('scheduled', sa.Date(), default=date.today()),
+    sa.Column('learn_mode', sa.Integer(), default=0),
     sa.ForeignKeyConstraint(['fk_user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
