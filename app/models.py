@@ -32,8 +32,7 @@ class User(UserMixin, db.Model):
                      place_bell = i,
                      user = self)
             db.session.add(c)
-            db.session.commit()
-            schedule_card(c)
+        db.session.commit()
         return True
 
     def remove_method(self, method_name):
