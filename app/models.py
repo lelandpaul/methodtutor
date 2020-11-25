@@ -123,7 +123,7 @@ class Card(db.Model):
 
     ease = db.Column(db.Float, default=1.2)
     interval = db.Column(db.Float, default=1.0)
-    scheduled = db.Column(db.Date)
+    scheduled = db.Column(db.Date, default=date.today)
     learn_mode = db.Column(db.Integer, default=0)
 
     reviews = db.relationship("Event", back_populates="card")

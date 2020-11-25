@@ -30,7 +30,7 @@ def upgrade():
     sa.Column('fk_user_id', sa.Integer(), nullable=True),
     sa.Column('ease', sa.Float(), default=1.2),
     sa.Column('interval', sa.Float(), default=1.0),
-    sa.Column('scheduled', sa.Date(), default=date.today()),
+    sa.Column('scheduled', sa.Date(), default=date.today),
     sa.Column('learn_mode', sa.Integer(), default=0),
     sa.ForeignKeyConstraint(['fk_user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
